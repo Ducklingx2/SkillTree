@@ -10,7 +10,7 @@
    CONFIG
 ========================================================= */
 
-const API_URL = "https://YOUR-RENDER-SERVICE.onrender.com";
+const API_URL = "https://skilltree-9quj.onrender.com";
 
 const POSTS_ENDPOINT = `${API_URL}/api/posts`;
 

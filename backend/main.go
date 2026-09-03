@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -14,13 +13,12 @@ import (
 
 const allowedOrigin = "https://ducklingx2.github.io"
 
-// corsMiddleware handles Cross-Origin Resource Sharing.
-// The frontend is hosted on GitHub Pages while the API is hosted on Render.
+// corsMiddleware handles requests coming from the SkillTree
+// GitHub Pages frontend.
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		origin := r.Header.Get("Origin")
 
-		// Only allow the actual SkillTree GitHub Pages site.
 		if origin == allowedOrigin {
 			w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
@@ -29,14 +27,18 @@ func corsMiddleware(next http.Handler) http.Handler {
 			w.Header().Set("Vary", "Origin")
 		}
 
-		// Browser preflight request.
+		// Handle browser CORS preflight requests.
 		if r.Method == http.MethodOptions {
-			if origin == allowedOrigin {
-				w.WriteHeader(http.StatusNoContent)
+			if origin != allowedOrigin {
+				http.Error(
+					w,
+					"CORS origin not allowed",
+					http.StatusForbidden,
+				)
 				return
 			}
 
-			http.Error(w, "CORS origin not allowed", http.StatusForbidden)
+			w.WriteHeader(http.StatusNoContent)
 			return
 		}
 
@@ -44,10 +46,14 @@ func corsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// healthHandler confirms that the API is running.
+// healthHandler is used to verify that the API is alive.
 func healthHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		http.Error(
+			w,
+			"Method not allowed",
+			http.StatusMethodNotAllowed,
+		)
 		return
 	}
 
@@ -74,9 +80,16 @@ func main() {
 	if err != nil {
 		log.Fatalf("database connection failed: %v", err)
 	}
+
 	defer pool.Close()
 
 	log.Println("Database connection established.")
+
+	// --------------------------------------------------
+	// POST HANDLER
+	// --------------------------------------------------
+
+	postHandler := handlers.NewPostHandler(pool)
 
 	// --------------------------------------------------
 	// ROUTES
@@ -90,16 +103,11 @@ func main() {
 	// Posts API
 	mux.HandleFunc("/api/posts", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
-
 		case http.MethodGet:
-			handlers.GetPosts(pool)(w, r)
+			postHandler.GetPosts(w, r)
 
 		case http.MethodPost:
-			handlers.CreatePost(pool)(w, r)
-
-		case http.MethodOptions:
-			// Normally handled by corsMiddleware before this point.
-			w.WriteHeader(http.StatusNoContent)
+			postHandler.CreatePost(w, r)
 
 		default:
 			http.Error(
@@ -135,13 +143,8 @@ func main() {
 
 	log.Printf("Skilltree API running on port %s", port)
 
-	// Graceful-ish shutdown context is not required for the basic
-	// Render deployment, but the server is kept deliberately simple.
 	if err := server.ListenAndServe(); err != nil &&
 		err != http.ErrServerClosed {
 		log.Fatalf("server failed: %v", err)
 	}
-
-	// Keep context imported/available for future graceful shutdown work.
-	_ = context.Background()
 }

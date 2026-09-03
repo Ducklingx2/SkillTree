@@ -1,1702 +1,1390 @@
 /* =========================================================
    SKILLTREE
-   Frontend prototype
+   Frontend application
 ========================================================= */
+
+"use strict";
 
 
 /* =========================================================
-   STORAGE KEYS
+   CONFIG
 ========================================================= */
+
+const API_URL = "https://YOUR-RENDER-SERVICE.onrender.com";
+
+const POSTS_ENDPOINT = `${API_URL}/api/posts`;
 
 const STORAGE_KEYS = {
-    user: "skilltree_user",
-    posts: "skilltree_posts",
-    likes: "skilltree_likes"
+    uid: "skilltree_uid",
+    name: "skilltree_name"
 };
 
 
-
 /* =========================================================
-   DEFAULT USER
+   STATE
 ========================================================= */
 
-let user = JSON.parse(
-    localStorage.getItem(STORAGE_KEYS.user)
-) || {
-    displayName: "You",
-    username: "you"
+const state = {
+    posts: [],
+    filteredPosts: [],
+    sort: "recent",
+    search: "",
+    loading: false,
+    submitting: false,
+    selectedImage: "",
+    activePost: null,
+    toastTimer: null
 };
-
-
-
-/* =========================================================
-   SAMPLE POSTS
-   These are NOT predefined skills.
-   They are simply demo community posts.
-========================================================= */
-
-const samplePosts = [
-
-    {
-        id: "demo-1",
-
-        skillName:
-            "How I make cinematic Minecraft builds",
-
-        author: {
-            name: "Maya",
-            username: "mayabuilds"
-        },
-
-        content:
-            "I start with the lighting before I even think about the details. Pick one strong light source, build the composition around it, then use smaller sources to guide the eye. After that, I add texture and tiny imperfections so the build doesn't feel like a showroom.",
-
-        image: null,
-
-        platform: "none",
-
-        createdAt:
-            Date.now() - 1000 * 60 * 60 * 2,
-
-        likes: 84,
-
-        comments: 12
-    },
-
-
-    {
-        id: "demo-2",
-
-        skillName:
-            "Making music without knowing music theory",
-
-        author: {
-            name: "Noah",
-            username: "noahmakesnoise"
-        },
-
-        content:
-            "You don't need to memorize a giant wall of theory before making something. I usually start with a melody I like, find a few notes that sound good together, and build outward. The important part is listening carefully and changing one thing at a time.",
-
-        image: null,
-
-        platform: "none",
-
-        createdAt:
-            Date.now() - 1000 * 60 * 60 * 5,
-
-        likes: 67,
-
-        comments: 9
-    },
-
-
-    {
-        id: "demo-3",
-
-        skillName:
-            "Actually understanding difficult math",
-
-        author: {
-            name: "Sam",
-            username: "samthinks"
-        },
-
-        content:
-            "When I get stuck on a problem, I stop trying to solve the exact question and ask what the question is actually describing. Drawing it, explaining it in normal words, or making a tiny example usually makes the missing idea obvious.",
-
-        image: null,
-
-        platform: "none",
-
-        createdAt:
-            Date.now() - 1000 * 60 * 60 * 9,
-
-        likes: 52,
-
-        comments: 15
-    },
-
-
-    {
-        id: "demo-4",
-
-        skillName:
-            "Making tiny robots from random junk",
-
-        author: {
-            name: "Leo",
-            username: "leobuilds"
-        },
-
-        content:
-            "The trick is not starting with the robot. Start with the movement you want. Once you know what should move, you can figure out what parts can create that movement. Broken toys and random hardware suddenly become useful.",
-
-        image: null,
-
-        platform: "none",
-
-        createdAt:
-            Date.now() - 1000 * 60 * 60 * 14,
-
-        likes: 41,
-
-        comments: 7
-    }
-
-];
-
-
-
-/* =========================================================
-   LOAD POSTS
-========================================================= */
-
-let savedPosts = JSON.parse(
-    localStorage.getItem(STORAGE_KEYS.posts)
-);
-
-
-let posts = savedPosts || samplePosts;
-
-
-
-/* =========================================================
-   LIKES
-========================================================= */
-
-let likedPosts = JSON.parse(
-    localStorage.getItem(STORAGE_KEYS.likes)
-) || {};
-
 
 
 /* =========================================================
    DOM
 ========================================================= */
 
-const teacherGrid =
-    document.getElementById("teacherGrid");
+const dom = {
+    navLinks: document.querySelectorAll(".nav-links a"),
 
-const postGrid =
-    document.getElementById("postGrid");
+    heroCreateButton:
+        document.getElementById("heroCreateButton"),
 
-const searchInput =
-    document.getElementById("searchInput");
+    treeTeachButton:
+        document.getElementById("treeTeachButton"),
 
-const searchButton =
-    document.getElementById("searchButton");
+    ctaCreateButton:
+        document.getElementById("ctaCreateButton"),
 
-const teachButton =
-    document.getElementById("teachButton");
+    notificationButton:
+        document.getElementById("notificationButton"),
 
-const ctaTeachButton =
-    document.getElementById("ctaTeachButton");
+    notificationDot:
+        document.getElementById("notificationDot"),
 
-const modalOverlay =
-    document.getElementById("modalOverlay");
+    profileButton:
+        document.getElementById("profileButton"),
 
-const modalClose =
-    document.getElementById("modalClose");
+    navAvatar:
+        document.getElementById("navAvatar"),
 
-const postForm =
-    document.getElementById("postForm");
+    navProfileName:
+        document.getElementById("navProfileName"),
 
-const skillName =
-    document.getElementById("skillName");
+    heroPostCount:
+        document.getElementById("heroPostCount"),
 
-const skillContent =
-    document.getElementById("skillContent");
+    heroTeacherCount:
+        document.getElementById("heroTeacherCount"),
 
-const imageInput =
-    document.getElementById("imageInput");
+    heroSkillCount:
+        document.getElementById("heroSkillCount"),
 
-const imagePreview =
-    document.getElementById("imagePreview");
+    searchInput:
+        document.getElementById("searchInput"),
 
-const uploadBox =
-    document.querySelector(".upload-box");
+    resultsLabel:
+        document.getElementById("resultsLabel"),
 
-const uploadContent =
-    document.getElementById("uploadContent");
+    sortButtons:
+        document.querySelectorAll(".sort-button"),
 
-const characterCount =
-    document.getElementById("characterCount");
+    teacherGrid:
+        document.getElementById("teacherGrid"),
 
-const meetingLink =
-    document.getElementById("meetingLink");
+    postGrid:
+        document.getElementById("postGrid"),
 
-const profileModal =
-    document.getElementById("profileModal");
+    largeTree:
+        document.getElementById("largeTree"),
 
-const profileModalClose =
-    document.getElementById("profileModalClose");
+    createModal:
+        document.getElementById("createModal"),
 
-const profileButton =
-    document.getElementById("profileButton");
+    detailModal:
+        document.getElementById("detailModal"),
 
-const profileForm =
-    document.getElementById("profileForm");
+    profileModal:
+        document.getElementById("profileModal"),
 
-const displayName =
-    document.getElementById("displayName");
+    createPostForm:
+        document.getElementById("createPostForm"),
 
-const username =
-    document.getElementById("username");
+    profileForm:
+        document.getElementById("profileForm"),
 
-const navAvatar =
-    document.getElementById("navAvatar");
+    authorName:
+        document.getElementById("authorName"),
 
-const navUsername =
-    document.getElementById("navUsername");
+    skillInput:
+        document.getElementById("skillInput"),
 
-const postModal =
-    document.getElementById("postModal");
+    descriptionInput:
+        document.getElementById("descriptionInput"),
 
-const postModalClose =
-    document.getElementById("postModalClose");
+    characterCount:
+        document.getElementById("characterCount"),
 
-const postDetailContent =
-    document.getElementById("postDetailContent");
+    uploadBox:
+        document.getElementById("uploadBox"),
 
-const toast =
-    document.getElementById("toast");
+    imageInput:
+        document.getElementById("imageInput"),
 
-const toastMessage =
-    document.getElementById("toastMessage");
+    imagePreview:
+        document.getElementById("imagePreview"),
 
-const skillCount =
-    document.getElementById("skillCount");
+    meetingLink:
+        document.getElementById("meetingLink"),
 
-const peopleCount =
-    document.getElementById("peopleCount");
+    meetingUrl:
+        document.getElementById("meetingUrl"),
 
-const resultsLabel =
-    document.getElementById("resultsLabel");
+    submitPostButton:
+        document.getElementById("submitPostButton"),
 
+    detailImage:
+        document.getElementById("detailImage"),
+
+    detailTitle:
+        document.getElementById("detailTitle"),
+
+    detailAuthor:
+        document.getElementById("detailAuthor"),
+
+    detailText:
+        document.getElementById("detailText"),
+
+    detailLive:
+        document.getElementById("detailLive"),
+
+    detailMeetingLink:
+        document.getElementById("detailMeetingLink"),
+
+    profileNameInput:
+        document.getElementById("profileNameInput"),
+
+    toast:
+        document.getElementById("toast"),
+
+    toastIcon:
+        document.getElementById("toastIcon"),
+
+    toastMessage:
+        document.getElementById("toastMessage")
+};
 
 
 /* =========================================================
    INITIALIZATION
 ========================================================= */
 
-document.addEventListener(
-    "DOMContentLoaded",
-    () => {
+document.addEventListener("DOMContentLoaded", initialize);
 
-        updateProfileUI();
 
-        renderEverything();
+async function initialize() {
 
-        setupNavigation();
+    initializeIdentity();
 
-    }
-);
+    bindNavigation();
 
+    bindButtons();
+
+    bindSearch();
+
+    bindSorting();
+
+    bindModalControls();
+
+    bindCreateForm();
+
+    bindProfileForm();
+
+    bindImageUpload();
+
+    bindLiveOptions();
+
+    bindCharacterCounter();
+
+    bindKeyboardShortcuts();
+
+    updateProfileUI();
+
+    renderInitialTree();
+
+    await loadPosts();
+
+    setupScrollNavigation();
+}
 
 
 /* =========================================================
-   PROFILE
+   IDENTITY
 ========================================================= */
 
-function updateProfileUI() {
+function initializeIdentity() {
 
-    navUsername.textContent =
-        user.username === "you"
-            ? "You"
-            : `@${user.username}`;
+    let uid = localStorage.getItem(STORAGE_KEYS.uid);
 
+    if (!uid) {
 
-    navAvatar.textContent =
-        getInitials(user.displayName);
+        uid = createUID();
 
-
-    displayName.value =
-        user.displayName === "You"
-            ? ""
-            : user.displayName;
-
-
-    username.value =
-        user.username === "you"
-            ? ""
-            : user.username;
-}
-
-
-function getInitials(name) {
-
-    if (!name) return "?";
-
-    const parts =
-        name.trim().split(/\s+/);
-
-    if (parts.length === 1) {
-        return parts[0][0].toUpperCase();
+        localStorage.setItem(
+            STORAGE_KEYS.uid,
+            uid
+        );
     }
 
-    return (
-        parts[0][0] +
-        parts[parts.length - 1][0]
-    ).toUpperCase();
+
+    let name = localStorage.getItem(STORAGE_KEYS.name);
+
+    if (!name) {
+
+        name = "You";
+
+        localStorage.setItem(
+            STORAGE_KEYS.name,
+            name
+        );
+    }
 }
 
 
+function createUID() {
 
-function saveUser() {
+    if (
+        window.crypto &&
+        typeof window.crypto.randomUUID === "function"
+    ) {
+        return window.crypto.randomUUID();
+    }
+
+
+    return (
+        "user-" +
+        Date.now().toString(36) +
+        "-" +
+        Math.random().toString(36).slice(2, 10)
+    );
+}
+
+
+function getUID() {
+
+    let uid =
+        localStorage.getItem(STORAGE_KEYS.uid);
+
+    if (!uid) {
+
+        uid = createUID();
+
+        localStorage.setItem(
+            STORAGE_KEYS.uid,
+            uid
+        );
+    }
+
+    return uid;
+}
+
+
+function getUserName() {
+
+    return (
+        localStorage.getItem(STORAGE_KEYS.name) ||
+        "You"
+    );
+}
+
+
+function setUserName(name) {
+
+    const cleanName =
+        name.trim().slice(0, 100);
+
+    if (!cleanName) {
+        return;
+    }
 
     localStorage.setItem(
-        STORAGE_KEYS.user,
-        JSON.stringify(user)
+        STORAGE_KEYS.name,
+        cleanName
     );
 
     updateProfileUI();
 }
 
 
-
 /* =========================================================
-   RENDER EVERYTHING
+   PROFILE UI
 ========================================================= */
 
-function renderEverything() {
+function updateProfileUI() {
 
-    renderTeacherCards();
+    const name = getUserName();
 
-    renderPosts();
+    const initials =
+        getInitials(name);
 
-    renderTree();
 
-    updateStats();
+    if (dom.navProfileName) {
+        dom.navProfileName.textContent = name;
+    }
 
+
+    if (dom.navAvatar) {
+        dom.navAvatar.textContent = initials;
+    }
+
+
+    if (dom.authorName) {
+        dom.authorName.value = name;
+    }
+
+
+    if (dom.profileNameInput) {
+        dom.profileNameInput.value = name;
+    }
 }
 
+
+function getInitials(name) {
+
+    const words =
+        name
+            .trim()
+            .split(/\s+/)
+            .filter(Boolean);
+
+
+    if (!words.length) {
+        return "Y";
+    }
+
+
+    if (words.length === 1) {
+        return words[0].slice(0, 1).toUpperCase();
+    }
+
+
+    return (
+        words[0].slice(0, 1) +
+        words[words.length - 1].slice(0, 1)
+    ).toUpperCase();
+}
+
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+function bindNavigation() {
+
+    dom.navLinks.forEach(link => {
+
+        link.addEventListener("click", event => {
+
+            const href =
+                link.getAttribute("href");
+
+
+            if (!href || !href.startsWith("#")) {
+                return;
+            }
+
+
+            event.preventDefault();
+
+
+            const target =
+                document.querySelector(href);
+
+
+            if (!target) {
+                return;
+            }
+
+
+            target.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        });
+    });
+}
+
+
+function setupScrollNavigation() {
+
+    const sections = [
+        document.getElementById("home"),
+        document.getElementById("discover"),
+        document.getElementById("tree")
+    ];
+
+
+    if (!("IntersectionObserver" in window)) {
+        return;
+    }
+
+
+    const observer =
+        new IntersectionObserver(
+            entries => {
+
+                entries.forEach(entry => {
+
+                    if (!entry.isIntersecting) {
+                        return;
+                    }
+
+
+                    const id =
+                        entry.target.id;
+
+
+                    dom.navLinks.forEach(link => {
+
+                        link.classList.toggle(
+                            "active",
+                            link.dataset.nav === id
+                        );
+                    });
+                });
+
+            },
+            {
+                threshold: 0.35
+            }
+        );
+
+
+    sections
+        .filter(Boolean)
+        .forEach(section => observer.observe(section));
+}
+
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+function bindButtons() {
+
+    [
+        dom.heroCreateButton,
+        dom.treeTeachButton,
+        dom.ctaCreateButton
+    ]
+        .filter(Boolean)
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                () => openCreateModal()
+            );
+        });
+
+
+    dom.profileButton?.addEventListener(
+        "click",
+        openProfileModal
+    );
+
+
+    dom.notificationButton?.addEventListener(
+        "click",
+        () => {
+
+            showToast(
+                "You're all caught up.",
+                "✓"
+            );
+
+            if (dom.notificationDot) {
+                dom.notificationDot.hidden = true;
+            }
+        }
+    );
+}
 
 
 /* =========================================================
    SEARCH
 ========================================================= */
 
-let currentSort = "popular";
+function bindSearch() {
 
+    dom.searchInput?.addEventListener(
+        "input",
+        event => {
 
-searchInput.addEventListener(
-    "input",
-    renderEverything
-);
+            state.search =
+                event.target.value.trim().toLowerCase();
 
-
-searchButton.addEventListener(
-    "click",
-    () => {
-
-        document
-            .getElementById("discover")
-            .scrollIntoView({
-                behavior: "smooth"
-            });
-
-        setTimeout(
-            () => searchInput.focus(),
-            500
-        );
-
-    }
-);
-
-
-document.addEventListener(
-    "keydown",
-    event => {
-
-        if (
-            event.key === "/" &&
-            document.activeElement.tagName !== "INPUT" &&
-            document.activeElement.tagName !== "TEXTAREA"
-        ) {
-
-            event.preventDefault();
-
-            searchInput.focus();
-
+            applyFilters();
         }
-
-        if (event.key === "Escape") {
-
-            closeAllModals();
-
-        }
-
-    }
-);
-
+    );
+}
 
 
 /* =========================================================
-   SORT
+   SORTING
 ========================================================= */
 
-document
-    .querySelectorAll(".sort-button")
-    .forEach(button => {
+function bindSorting() {
+
+    dom.sortButtons.forEach(button => {
 
         button.addEventListener(
             "click",
             () => {
 
-                document
-                    .querySelectorAll(".sort-button")
-                    .forEach(btn =>
-                        btn.classList.remove("active")
-                    );
+                state.sort =
+                    button.dataset.sort || "recent";
 
-                button.classList.add("active");
 
-                currentSort =
-                    button.dataset.sort;
+                dom.sortButtons.forEach(
+                    item => {
+                        item.classList.toggle(
+                            "active",
+                            item === button
+                        );
+                    }
+                );
 
-                renderEverything();
 
+                applyFilters();
             }
         );
-
     });
-
-
-
-/* =========================================================
-   FILTER POSTS
-========================================================= */
-
-function getFilteredPosts() {
-
-    const query =
-        searchInput.value
-            .trim()
-            .toLowerCase();
-
-
-    let filtered =
-        [...posts];
-
-
-    if (query) {
-
-        filtered =
-            filtered.filter(post => {
-
-                const searchable = [
-                    post.skillName,
-                    post.content,
-                    post.author.name,
-                    post.author.username
-                ]
-                    .join(" ")
-                    .toLowerCase();
-
-                return searchable.includes(query);
-
-            });
-
-    }
-
-
-    if (currentSort === "newest") {
-
-        filtered.sort(
-            (a, b) =>
-                b.createdAt - a.createdAt
-        );
-
-    } else {
-
-        filtered.sort(
-            (a, b) =>
-                b.likes - a.likes
-        );
-
-    }
-
-
-    return filtered;
-
 }
 
 
-
 /* =========================================================
-   TEACHER CARDS
+   LOAD POSTS
 ========================================================= */
 
-function renderTeacherCards() {
+async function loadPosts() {
 
-    const filtered =
-        getFilteredPosts();
-
-
-    teacherGrid.innerHTML = "";
+    setLoading(true);
 
 
-    if (!filtered.length) {
+    try {
 
-        teacherGrid.innerHTML = `
-            <div class="empty-state">
-                <h3>Nothing found.</h3>
-                <p>
-                    Try searching for something else.
-                </p>
-            </div>
-        `;
+        const response =
+            await fetch(POSTS_ENDPOINT, {
+                method: "GET",
+                headers: {
+                    "Accept": "application/json"
+                }
+            });
 
-        return;
 
+        if (!response.ok) {
+
+            throw new Error(
+                `Server returned ${response.status}`
+            );
+        }
+
+
+        const data =
+            await response.json();
+
+
+        state.posts =
+            Array.isArray(data)
+                ? data.map(normalizePost)
+                : [];
+
+
+        applyFilters();
+
+        updateStats();
+
+        renderUserTree();
+
+
+        if (state.posts.length) {
+
+            dom.notificationDot.hidden = true;
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Failed to load posts:",
+            error
+        );
+
+
+        state.posts = [];
+
+        renderEmptyFeed(
+            "Could not load the community.",
+            "Check that the API URL is correct and the backend is running."
+        );
+
+
+        renderCommunityEmpty(
+            "The community couldn't be loaded.",
+            "Your backend may still be waking up."
+        );
+
+
+        updateStats();
+
+
+        showToast(
+            "Couldn't connect to Skilltree.",
+            "!"
+        );
+
+    } finally {
+
+        setLoading(false);
+    }
+}
+
+
+/* =========================================================
+   NORMALIZE POST
+========================================================= */
+
+function normalizePost(post) {
+
+    return {
+        id: post.id,
+
+        uid:
+            String(
+                post.uid ??
+                ""
+            ),
+
+        authorName:
+            String(
+                post.authorName ??
+                post.author_name ??
+                "Unknown"
+            ),
+
+        skill:
+            String(
+                post.skill ??
+                "Untitled skill"
+            ),
+
+        description:
+            String(
+                post.description ??
+                ""
+            ),
+
+        imageUrl:
+            String(
+                post.imageUrl ??
+                post.image_url ??
+                ""
+            ),
+
+        meetingUrl:
+            String(
+                post.meetingUrl ??
+                post.meeting_url ??
+                ""
+            ),
+
+        createdAt:
+            post.createdAt ??
+            post.created_at ??
+            new Date().toISOString()
+    };
+}
+
+
+/* =========================================================
+   FILTER + SORT
+========================================================= */
+
+function applyFilters() {
+
+    let posts =
+        [...state.posts];
+
+
+    if (state.search) {
+
+        posts =
+            posts.filter(post => {
+
+                const searchable =
+                    [
+                        post.skill,
+                        post.authorName,
+                        post.description
+                    ]
+                        .join(" ")
+                        .toLowerCase();
+
+
+                return searchable.includes(
+                    state.search
+                );
+            });
     }
 
 
-    filtered
-        .slice(0, 8)
-        .forEach(post => {
-
-            const card =
-                document.createElement("article");
-
-            card.className =
-                "teacher-card";
+    posts.sort(
+        getSortFunction(state.sort)
+    );
 
 
-            card.innerHTML = `
-
-                <div class="teacher-image">
-
-                    ${getImageHTML(
-                        post,
-                        "teacher"
-                    )}
-
-                </div>
+    state.filteredPosts =
+        posts;
 
 
-                <div class="teacher-content">
-
-                    <h3 class="skill-name">
-                        ${escapeHTML(
-                            post.skillName
-                        )}
-                    </h3>
+    renderTeacherGrid(
+        state.filteredPosts
+    );
 
 
-                    <div class="teacher-name">
-                        ${escapeHTML(
-                            post.author.name
-                        )}
-                        · @${escapeHTML(
-                            post.author.username
-                        )}
-                    </div>
+    renderPostGrid(
+        state.filteredPosts
+    );
 
 
-                    <p class="teacher-description">
-                        ${escapeHTML(
-                            post.content
-                        )}
-                    </p>
+    updateResultsLabel();
+}
 
 
-                    <div class="teacher-meta">
+function getSortFunction(sort) {
 
-                        <span>
-                            ${post.likes} people liked this
-                        </span>
+    if (sort === "skill") {
 
-                        <span class="card-arrow">
-                            ↗
-                        </span>
-
-                    </div>
-
-                </div>
-            `;
+        return (a, b) =>
+            a.skill.localeCompare(
+                b.skill
+            );
+    }
 
 
-            card.addEventListener(
-                "click",
-                () => openPost(post.id)
+    if (sort === "teacher") {
+
+        return (a, b) =>
+            a.authorName.localeCompare(
+                b.authorName
+            );
+    }
+
+
+    return (a, b) =>
+        new Date(b.createdAt) -
+        new Date(a.createdAt);
+}
+
+
+/* =========================================================
+   RESULTS LABEL
+========================================================= */
+
+function updateResultsLabel() {
+
+    if (!dom.resultsLabel) {
+        return;
+    }
+
+
+    const count =
+        state.filteredPosts.length;
+
+
+    if (!state.posts.length) {
+
+        dom.resultsLabel.textContent =
+            "No skills shared yet";
+
+        return;
+    }
+
+
+    if (state.search) {
+
+        dom.resultsLabel.textContent =
+            `${count} ${
+                count === 1
+                    ? "result"
+                    : "results"
+            }`;
+
+        return;
+    }
+
+
+    dom.resultsLabel.textContent =
+        `${count} ${
+            count === 1
+                ? "skill"
+                : "skills"
+        } shared`;
+}
+
+
+/* =========================================================
+   TEACHER GRID
+========================================================= */
+
+function renderTeacherGrid(posts) {
+
+    if (!dom.teacherGrid) {
+        return;
+    }
+
+
+    dom.teacherGrid.replaceChildren();
+
+
+    if (!posts.length) {
+
+        const empty =
+            createEmptyState(
+                state.search
+                    ? "Nothing found."
+                    : "No skills yet.",
+                state.search
+                    ? "Try another skill, person, or phrase."
+                    : "Be the first person to put something on the tree."
             );
 
 
-            teacherGrid.appendChild(card);
+        dom.teacherGrid.appendChild(
+            empty
+        );
 
-        });
+        return;
+    }
 
 
-    resultsLabel.textContent =
-        searchInput.value.trim()
-            ? `${filtered.length} result${filtered.length === 1 ? "" : "s"}`
-            : "Popular right now";
+    posts.forEach(post => {
 
+        dom.teacherGrid.appendChild(
+            createTeacherCard(post)
+        );
+    });
 }
 
+
+function createTeacherCard(post) {
+
+    const card =
+        document.createElement("article");
+
+    card.className =
+        "teacher-card";
+
+
+    card.dataset.postId =
+        String(post.id);
+
+
+    const image =
+        document.createElement("div");
+
+    image.className =
+        "teacher-image";
+
+
+    if (post.imageUrl) {
+
+        const img =
+            document.createElement("img");
+
+        img.src =
+            post.imageUrl;
+
+        img.alt =
+            `${post.skill} shared by ${post.authorName}`;
+
+        img.loading =
+            "lazy";
+
+        image.appendChild(img);
+
+    } else {
+
+        const placeholder =
+            document.createElement("div");
+
+        placeholder.className =
+            "image-placeholder";
+
+
+        const avatar =
+            document.createElement("div");
+
+        avatar.className =
+            "placeholder-avatar";
+
+        avatar.textContent =
+            getInitials(post.authorName);
+
+
+        placeholder.appendChild(
+            avatar
+        );
+
+        image.appendChild(
+            placeholder
+        );
+    }
+
+
+    const content =
+        document.createElement("div");
+
+    content.className =
+        "teacher-content";
+
+
+    const skill =
+        document.createElement("h3");
+
+    skill.className =
+        "skill-name";
+
+    skill.textContent =
+        post.skill;
+
+
+    const name =
+        document.createElement("div");
+
+    name.className =
+        "teacher-name";
+
+    name.textContent =
+        `by ${post.authorName}`;
+
+
+    const description =
+        document.createElement("p");
+
+    description.className =
+        "teacher-description";
+
+    description.textContent =
+        post.description;
+
+
+    const meta =
+        document.createElement("div");
+
+    meta.className =
+        "teacher-meta";
+
+
+    const date =
+        document.createElement("span");
+
+    date.textContent =
+        formatDate(post.createdAt);
+
+
+    const arrow =
+        document.createElement("span");
+
+    arrow.className =
+        "card-arrow";
+
+    arrow.textContent =
+        "→";
+
+
+    meta.append(
+        date,
+        arrow
+    );
+
+
+    content.append(
+        skill,
+        name,
+        description,
+        meta
+    );
+
+
+    card.append(
+        image,
+        content
+    );
+
+
+    card.addEventListener(
+        "click",
+        () => openDetailModal(post)
+    );
+
+
+    return card;
+}
 
 
 /* =========================================================
    COMMUNITY POSTS
 ========================================================= */
 
-function renderPosts() {
+function renderPostGrid(posts) {
 
-    const filtered =
-        getFilteredPosts();
-
-
-    postGrid.innerHTML = "";
-
-
-    if (!filtered.length) {
-
-        postGrid.innerHTML = `
-            <div class="empty-state">
-                <h3>No posts found.</h3>
-                <p>
-                    Be the person who starts something new.
-                </p>
-            </div>
-        `;
-
+    if (!dom.postGrid) {
         return;
-
     }
 
 
-    filtered
-        .slice(0, 6)
+    dom.postGrid.replaceChildren();
+
+
+    if (!posts.length) {
+
+        dom.postGrid.appendChild(
+            createEmptyState(
+                "Nothing here yet.",
+                "Skills shared by the community will appear here."
+            )
+        );
+
+        return;
+    }
+
+
+    posts
+        .slice(0, 12)
         .forEach(post => {
 
-            const card =
-                document.createElement("article");
-
-            card.className =
-                "post-card";
-
-
-            const liked =
-                Boolean(likedPosts[post.id]);
-
-
-            const liveBadge =
-                post.platform !== "none"
-                    ? `
-                        <span class="live-badge">
-                            ${post.platform === "zoom"
-                                ? "Zoom"
-                                : "Meet"}
-                        </span>
-                    `
-                    : "";
-
-
-            card.innerHTML = `
-
-                <div class="post-image">
-
-                    ${getImageHTML(
-                        post,
-                        "post"
-                    )}
-
-                </div>
-
-
-                <div class="post-body">
-
-                    <div class="post-author">
-
-                        <div class="mini-avatar">
-                            ${getInitials(
-                                post.author.name
-                            )}
-                        </div>
-
-
-                        <div class="post-author-text">
-
-                            <strong>
-                                ${escapeHTML(
-                                    post.author.name
-                                )}
-                            </strong>
-
-                            <span>
-                                @${escapeHTML(
-                                    post.author.username
-                                )}
-                                ·
-                                ${formatTime(
-                                    post.createdAt
-                                )}
-                            </span>
-
-                        </div>
-
-                    </div>
-
-
-                    <h3 class="post-title">
-                        ${escapeHTML(
-                            post.skillName
-                        )}
-                    </h3>
-
-
-                    <p class="post-content">
-                        ${escapeHTML(
-                            post.content
-                        )}
-                    </p>
-
-
-                    <div class="post-actions">
-
-                        <button
-                            class="post-action like-button ${liked ? "liked" : ""}"
-                            data-id="${post.id}"
-                        >
-                            ${liked ? "♥" : "♡"}
-                            <span>
-                                ${post.likes}
-                            </span>
-                        </button>
-
-
-                        <button
-                            class="post-action comment-button"
-                            data-id="${post.id}"
-                        >
-                            ◌
-                            <span>
-                                ${post.comments}
-                            </span>
-                        </button>
-
-
-                        <button
-                            class="post-action share-button"
-                            data-id="${post.id}"
-                        >
-                            ↗
-                            <span>
-                                Share
-                            </span>
-                        </button>
-
-
-                        ${liveBadge}
-
-                    </div>
-
-                </div>
-            `;
-
-
-            card
-                .querySelector(".like-button")
-                .addEventListener(
-                    "click",
-                    event => {
-
-                        event.stopPropagation();
-
-                        toggleLike(post.id);
-
-                    }
-                );
-
-
-            card
-                .querySelector(".comment-button")
-                .addEventListener(
-                    "click",
-                    event => {
-
-                        event.stopPropagation();
-
-                        openPost(post.id);
-
-                    }
-                );
-
-
-            card
-                .querySelector(".share-button")
-                .addEventListener(
-                    "click",
-                    event => {
-
-                        event.stopPropagation();
-
-                        sharePost(post);
-
-                    }
-                );
-
-
-            card.addEventListener(
-                "click",
-                () => openPost(post.id)
+            dom.postGrid.appendChild(
+                createPostCard(post)
             );
-
-
-            postGrid.appendChild(card);
-
         });
-
 }
 
 
+function createPostCard(post) {
 
-/* =========================================================
-   IMAGE HTML
-========================================================= */
+    const card =
+        document.createElement("article");
 
-function getImageHTML(
-    post,
-    type
-) {
-
-    if (post.image) {
-
-        return `
-            <img
-                src="${post.image}"
-                alt="${escapeHTML(
-                    post.skillName
-                )}"
-            >
-        `;
-
-    }
+    card.className =
+        "post-card";
 
 
-    return `
-        <div class="${type === "teacher"
-            ? "image-placeholder"
-            : "post-image-placeholder"}">
-
-            <div class="placeholder-avatar">
-                ${getInitials(
-                    post.author.name
-                )}
-            </div>
-
-        </div>
-    `;
-
-}
-
-
-
-/* =========================================================
-   LIKE
-========================================================= */
-
-function toggleLike(id) {
-
-    const post =
-        posts.find(
-            item => item.id === id
-        );
-
-
-    if (!post) return;
-
-
-    if (likedPosts[id]) {
-
-        post.likes =
-            Math.max(
-                0,
-                post.likes - 1
-            );
-
-        delete likedPosts[id];
-
-    } else {
-
-        post.likes++;
-
-        likedPosts[id] = true;
-
-    }
-
-
-    savePosts();
-
-    localStorage.setItem(
-        STORAGE_KEYS.likes,
-        JSON.stringify(likedPosts)
-    );
-
-
-    renderEverything();
-
-}
-
-
-
-/* =========================================================
-   SHARE
-========================================================= */
-
-async function sharePost(post) {
-
-    const shareText =
-        `${post.skillName} by @${post.author.username}`;
-
-
-    if (
-        navigator.share
-    ) {
-
-        try {
-
-            await navigator.share({
-                title: post.skillName,
-                text: shareText
-            });
-
-            showToast(
-                "Shared successfully"
-            );
-
-        } catch {
-            // User cancelled sharing.
-        }
-
-        return;
-
-    }
-
-
-    try {
-
-        await navigator.clipboard.writeText(
-            shareText
-        );
-
-        showToast(
-            "Copied to clipboard"
-        );
-
-    } catch {
-
-        showToast(
-            "Share link copied"
-        );
-
-    }
-
-}
-
-
-
-/* =========================================================
-   OPEN POST
-========================================================= */
-
-function openPost(id) {
-
-    const post =
-        posts.find(
-            item => item.id === id
-        );
-
-
-    if (!post) return;
+    card.dataset.postId =
+        String(post.id);
 
 
     const image =
-        post.image
-            ? `
-                <img
-                    class="post-detail-image"
-                    src="${post.image}"
-                    alt="${escapeHTML(
-                        post.skillName
-                    )}"
-                >
-            `
-            : "";
+        document.createElement("div");
 
+    image.className =
+        "post-image";
 
-    const live =
-        post.platform !== "none" &&
-        post.meetingLink
-            ? `
-                <div class="detail-live">
 
-                    <strong>
-                        Want to learn live?
-                    </strong>
+    if (post.imageUrl) {
 
-                    <a
-                        href="${escapeAttribute(
-                            post.meetingLink
-                        )}"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        Connect on
-                        ${post.platform === "zoom"
-                            ? "Zoom"
-                            : "Google Meet"}
-                    </a>
+        const img =
+            document.createElement("img");
 
-                </div>
-            `
-            : "";
+        img.src =
+            post.imageUrl;
 
+        img.alt =
+            `${post.skill} by ${post.authorName}`;
 
-    postDetailContent.innerHTML = `
+        img.loading =
+            "lazy";
 
-        ${image}
+        image.appendChild(img);
 
-        <div class="post-detail-content">
+    } else {
 
-            <h2>
-                ${escapeHTML(
-                    post.skillName
-                )}
-            </h2>
+        const placeholder =
+            document.createElement("div");
 
+        placeholder.className =
+            "post-image-placeholder";
 
-            <div class="detail-author">
-                ${escapeHTML(
-                    post.author.name
-                )}
-                ·
-                @${escapeHTML(
-                    post.author.username
-                )}
-            </div>
 
+        const avatar =
+            document.createElement("span");
 
-            <div class="detail-text">
-                ${escapeHTML(
-                    post.content
-                )}
-            </div>
+        avatar.className =
+            "placeholder-avatar";
 
+        avatar.textContent =
+            getInitials(post.authorName);
 
-            ${live}
 
-        </div>
-
-    `;
-
-
-    postModal.classList.add("open");
-
-    document.body.style.overflow = "hidden";
-
-}
-
-
-
-/* =========================================================
-   CREATE POST MODAL
-========================================================= */
-
-function openCreateModal() {
-
-    modalOverlay.classList.add("open");
-
-    document.body.style.overflow = "hidden";
-
-    setTimeout(
-        () => skillName.focus(),
-        200
-    );
-
-}
-
-
-function closeCreateModal() {
-
-    modalOverlay.classList.remove("open");
-
-    if (
-        !profileModal.classList.contains("open") &&
-        !postModal.classList.contains("open")
-    ) {
-        document.body.style.overflow = "";
-    }
-
-}
-
-
-
-/* =========================================================
-   TEACH BUTTONS
-========================================================= */
-
-teachButton.addEventListener(
-    "click",
-    openCreateModal
-);
-
-
-ctaTeachButton.addEventListener(
-    "click",
-    openCreateModal
-);
-
-
-modalClose.addEventListener(
-    "click",
-    closeCreateModal
-);
-
-
-modalOverlay.addEventListener(
-    "click",
-    event => {
-
-        if (
-            event.target === modalOverlay
-        ) {
-            closeCreateModal();
-        }
-
-    }
-);
-
-
-
-/* =========================================================
-   IMAGE UPLOAD
-========================================================= */
-
-imageInput.addEventListener(
-    "change",
-    () => {
-
-        const file =
-            imageInput.files[0];
-
-
-        if (!file) return;
-
-
-        if (!file.type.startsWith("image/")) {
-
-            showToast(
-                "Please choose an image"
-            );
-
-            return;
-
-        }
-
-
-        const reader =
-            new FileReader();
-
-
-        reader.onload =
-            event => {
-
-                imagePreview.src =
-                    event.target.result;
-
-                uploadBox.classList.add(
-                    "has-image"
-                );
-
-            };
-
-
-        reader.readAsDataURL(file);
-
-    }
-);
-
-
-
-/* =========================================================
-   TEXT CHARACTER COUNTER
-========================================================= */
-
-skillContent.addEventListener(
-    "input",
-    () => {
-
-        characterCount.textContent =
-            skillContent.value.length;
-
-    }
-);
-
-
-
-/* =========================================================
-   LIVE TEACHING
-========================================================= */
-
-document
-    .querySelectorAll(
-        'input[name="platform"]'
-    )
-    .forEach(radio => {
-
-        radio.addEventListener(
-            "change",
-            () => {
-
-                const selected =
-                    document.querySelector(
-                        'input[name="platform"]:checked'
-                    ).value;
-
-
-                if (selected === "none") {
-
-                    meetingLink
-                        .classList
-                        .remove("visible");
-
-                    meetingLink.required =
-                        false;
-
-                } else {
-
-                    meetingLink
-                        .classList
-                        .add("visible");
-
-                    meetingLink.required =
-                        true;
-
-                }
-
-            }
-        );
-
-    });
-
-
-
-/* =========================================================
-   SUBMIT POST
-========================================================= */
-
-postForm.addEventListener(
-    "submit",
-    event => {
-
-        event.preventDefault();
-
-
-        const name =
-            skillName.value.trim();
-
-        const content =
-            skillContent.value.trim();
-
-
-        if (!name || !content) {
-
-            showToast(
-                "Give your skill a name and teach it"
-            );
-
-            return;
-
-        }
-
-
-        const platform =
-            document.querySelector(
-                'input[name="platform"]:checked'
-            ).value;
-
-
-        const newPost = {
-
-            id:
-                `post-${Date.now()}-${Math.random()
-                    .toString(36)
-                    .slice(2, 8)}`,
-
-            skillName:
-                name,
-
-            author: {
-                name:
-                    user.displayName,
-
-                username:
-                    user.username
-            },
-
-            content:
-                content,
-
-            image:
-                imagePreview.src || null,
-
-            platform:
-                platform,
-
-            meetingLink:
-                platform === "none"
-                    ? ""
-                    : meetingLink.value.trim(),
-
-            createdAt:
-                Date.now(),
-
-            likes:
-                0,
-
-            comments:
-                0
-
-        };
-
-
-        posts.unshift(
-            newPost
+        placeholder.appendChild(
+            avatar
         );
 
 
-        savePosts();
-
-
-        resetPostForm();
-
-
-        closeCreateModal();
-
-
-        renderEverything();
-
-
-        document
-            .getElementById("community")
-            .scrollIntoView({
-                behavior: "smooth"
-            });
-
-
-        showToast(
-            "Your skill is now part of the tree"
+        image.appendChild(
+            placeholder
         );
-
     }
-);
 
 
+    const body =
+        document.createElement("div");
 
-/* =========================================================
-   RESET POST FORM
-========================================================= */
-
-function resetPostForm() {
-
-    postForm.reset();
+    body.className =
+        "post-body";
 
 
-    imagePreview.src = "";
+    const author =
+        document.createElement("div");
 
-    uploadBox.classList.remove(
-        "has-image"
+    author.className =
+        "post-author";
+
+
+    const avatar =
+        document.createElement("div");
+
+    avatar.className =
+        "mini-avatar";
+
+    avatar.textContent =
+        getInitials(post.authorName);
+
+
+    const authorText =
+        document.createElement("div");
+
+    authorText.className =
+        "post-author-text";
+
+
+    const authorStrong =
+        document.createElement("strong");
+
+    authorStrong.textContent =
+        post.authorName;
+
+
+    const authorDate =
+        document.createElement("span");
+
+    authorDate.textContent =
+        formatDate(post.createdAt);
+
+
+    authorText.append(
+        authorStrong,
+        authorDate
     );
 
 
-    characterCount.textContent =
-        "0";
-
-
-    meetingLink.classList.remove(
-        "visible"
+    author.append(
+        avatar,
+        authorText
     );
 
 
-    meetingLink.required =
-        false;
+    const title =
+        document.createElement("h3");
 
-}
+    title.className =
+        "post-title";
+
+    title.textContent =
+        post.skill;
 
 
+    const content =
+        document.createElement("p");
 
-/* =========================================================
-   SAVE POSTS
-========================================================= */
+    content.className =
+        "post-content";
 
-function savePosts() {
+    content.textContent =
+        post.description;
 
-    /*
-        Demo note:
 
-        Images are stored as Base64 data URLs
-        in localStorage.
+    const actions =
+        document.createElement("div");
 
-        That's fine for a prototype.
+    actions.className =
+        "post-actions";
 
-        A real version should move images
-        into cloud storage.
-    */
 
-    localStorage.setItem(
-        STORAGE_KEYS.posts,
-        JSON.stringify(posts)
+    const viewButton =
+        createActionButton(
+            "View",
+            "→"
+        );
+
+
+    viewButton.addEventListener(
+        "click",
+        event => {
+
+            event.stopPropagation();
+
+            openDetailModal(post);
+        }
     );
 
-}
 
-
-
-/* =========================================================
-   PROFILE MODAL
-========================================================= */
-
-profileButton.addEventListener(
-    "click",
-    () => {
-
-        profileModal.classList.add(
-            "open"
-        );
-
-        document.body.style.overflow =
-            "hidden";
-
-    }
-);
-
-
-profileModalClose.addEventListener(
-    "click",
-    closeProfileModal
-);
-
-
-profileModal.addEventListener(
-    "click",
-    event => {
-
-        if (
-            event.target === profileModal
-        ) {
-            closeProfileModal();
-        }
-
-    }
-);
-
-
-function closeProfileModal() {
-
-    profileModal.classList.remove(
-        "open"
+    actions.appendChild(
+        viewButton
     );
 
-    if (
-        !modalOverlay.classList.contains("open") &&
-        !postModal.classList.contains("open")
-    ) {
 
-        document.body.style.overflow =
-            "";
+    if (post.meetingUrl) {
 
+        const live =
+            document.createElement("span");
+
+        live.className =
+            "live-badge";
+
+        live.textContent =
+            "Live";
+
+
+        actions.appendChild(
+            live
+        );
     }
 
+
+    body.append(
+        author,
+        title,
+        content,
+        actions
+    );
+
+
+    card.append(
+        image,
+        body
+    );
+
+
+    card.addEventListener(
+        "click",
+        () => openDetailModal(post)
+    );
+
+
+    return card;
 }
 
 
+function createActionButton(label, icon) {
 
-/* =========================================================
-   SAVE PROFILE
-========================================================= */
+    const button =
+        document.createElement("button");
 
-profileForm.addEventListener(
-    "submit",
-    event => {
+    button.type =
+        "button";
 
-        event.preventDefault();
-
-
-        const newName =
-            displayName.value.trim();
+    button.className =
+        "post-action";
 
 
-        let newUsername =
-            username.value
-                .trim()
-                .toLowerCase();
+    const text =
+        document.createElement("span");
+
+    text.textContent =
+        label;
 
 
-        newUsername =
-            newUsername
-                .replace(
-                    /^@/,
-                    ""
-                )
-                .replace(
-                    /[^a-z0-9_.]/g,
-                    ""
-                );
+    const symbol =
+        document.createElement("span");
+
+    symbol.textContent =
+        icon;
 
 
-        if (
-            !newName ||
-            !newUsername
-        ) {
-
-            showToast(
-                "Please fill in your profile"
-            );
-
-            return;
-
-        }
+    button.append(
+        text,
+        symbol
+    );
 
 
-        user = {
-
-            displayName:
-                newName,
-
-            username:
-                newUsername
-
-        };
-
-
-        saveUser();
-
-
-        closeProfileModal();
-
-
-        showToast(
-            "Profile saved"
-        );
-
-
-        renderEverything();
-
-    }
-);
-
-
-
-/* =========================================================
-   TREE
-========================================================= */
-
-function renderTree() {
-
-    const tree =
-        document.getElementById(
-            "largeTree"
-        );
-
-
-    tree
-        .querySelectorAll(".large-node")
-        .forEach(node => node.remove());
-
-
-    const userPosts =
-        posts.filter(
-            post =>
-                post.author.username ===
-                user.username
-        );
-
-
-    /*
-        The nodes are intentionally simple circles.
-
-        No giant SVG monstrosity.
-        Humanity has suffered enough.
-    */
-
-    const positions = [
-
-        {
-            left: "25%",
-            top: "24%"
-        },
-
-        {
-            right: "23%",
-            top: "27%"
-        },
-
-        {
-            left: "19%",
-            bottom: "24%"
-        },
-
-        {
-            right: "18%",
-            bottom: "23%"
-        },
-
-        {
-            left: "47%",
-            top: "8%"
-        },
-
-        {
-            left: "47%",
-            bottom: "7%"
-        }
-
-    ];
-
-
-    userPosts
-        .slice(0, 6)
-        .forEach(
-            (post, index) => {
-
-                const node =
-                    document.createElement(
-                        "button"
-                    );
-
-
-                node.className =
-                    "large-node";
-
-
-                Object.assign(
-                    node.style,
-                    positions[index]
-                );
-
-
-                node.title =
-                    post.skillName;
-
-
-                node.addEventListener(
-                    "click",
-                    () => openPost(post.id)
-                );
-
-
-                tree.appendChild(
-                    node
-                );
-
-            }
-        );
-
+    return button;
 }
 
+
+/* =========================================================
+   EMPTY STATES
+========================================================= */
+
+function createEmptyState(title, message) {
+
+    const empty =
+        document.createElement("div");
+
+    empty.className =
+        "empty-state";
+
+
+    const heading =
+        document.createElement("h3");
+
+    heading.textContent =
+        title;
+
+
+    const paragraph =
+        document.createElement("p");
+
+    paragraph.textContent =
+        message;
+
+
+    empty.append(
+        heading,
+        paragraph
+    );
+
+
+    return empty;
+}
+
+
+function renderEmptyFeed(title, message) {
+
+    if (!dom.teacherGrid) {
+        return;
+    }
+
+
+    dom.teacherGrid.replaceChildren(
+        createEmptyState(
+            title,
+            message
+        )
+    );
+}
+
+
+function renderCommunityEmpty(title, message) {
+
+    if (!dom.postGrid) {
+        return;
+    }
+
+
+    dom.postGrid.replaceChildren(
+        createEmptyState(
+            title,
+            message
+        )
+    );
+}
 
 
 /* =========================================================
@@ -1705,205 +1393,1258 @@ function renderTree() {
 
 function updateStats() {
 
-    skillCount.textContent =
-        posts.length;
+    const posts =
+        state.posts;
 
 
-    const people =
+    const teacherSet =
         new Set(
             posts.map(
-                post =>
-                    post.author.username
+                post => post.uid
             )
         );
 
 
-    peopleCount.textContent =
-        people.size;
-
-}
-
-
-
-/* =========================================================
-   NAVIGATION
-========================================================= */
-
-function setupNavigation() {
-
-    const links =
-        document.querySelectorAll(
-            ".nav-links a"
+    const skillSet =
+        new Set(
+            posts.map(
+                post =>
+                    post.skill
+                        .trim()
+                        .toLowerCase()
+            )
         );
 
 
-    links.forEach(
-        link => {
-
-            link.addEventListener(
-                "click",
-                () => {
-
-                    links.forEach(
-                        item =>
-                            item.classList.remove(
-                                "active"
-                            )
-                    );
+    animateNumber(
+        dom.heroPostCount,
+        posts.length
+    );
 
 
-                    link.classList.add(
-                        "active"
-                    );
+    animateNumber(
+        dom.heroTeacherCount,
+        teacherSet.size
+    );
 
+
+    animateNumber(
+        dom.heroSkillCount,
+        skillSet.size
+    );
+}
+
+
+function animateNumber(element, target) {
+
+    if (!element) {
+        return;
+    }
+
+
+    const start =
+        Number(element.textContent) || 0;
+
+
+    if (start === target) {
+        return;
+    }
+
+
+    const duration =
+        500;
+
+    const startTime =
+        performance.now();
+
+
+    function frame(now) {
+
+        const progress =
+            Math.min(
+                (now - startTime) /
+                duration,
+                1
+            );
+
+
+        const eased =
+            1 -
+            Math.pow(
+                1 - progress,
+                3
+            );
+
+
+        const value =
+            Math.round(
+                start +
+                (target - start) *
+                eased
+            );
+
+
+        element.textContent =
+            value.toLocaleString();
+
+
+        if (progress < 1) {
+            requestAnimationFrame(frame);
+        }
+    }
+
+
+    requestAnimationFrame(frame);
+}
+
+
+/* =========================================================
+   CREATE MODAL
+========================================================= */
+
+function openCreateModal() {
+
+    resetCreateForm();
+
+    updateProfileUI();
+
+    openModal(
+        dom.createModal
+    );
+
+
+    setTimeout(
+        () => {
+            dom.skillInput?.focus();
+        },
+        100
+    );
+}
+
+
+function resetCreateForm() {
+
+    if (!dom.createPostForm) {
+        return;
+    }
+
+
+    dom.createPostForm.reset();
+
+
+    state.selectedImage =
+        "";
+
+
+    dom.uploadBox?.classList.remove(
+        "has-image"
+    );
+
+
+    if (dom.imagePreview) {
+
+        dom.imagePreview.src =
+            "";
+    }
+
+
+    if (dom.meetingLink) {
+
+        dom.meetingLink.classList.remove(
+            "visible"
+        );
+    }
+
+
+    if (dom.meetingUrl) {
+
+        dom.meetingUrl.value =
+            "";
+    }
+
+
+    updateCharacterCount();
+}
+
+
+/* =========================================================
+   CREATE FORM
+========================================================= */
+
+function bindCreateForm() {
+
+    dom.createPostForm?.addEventListener(
+        "submit",
+        handleCreatePost
+    );
+}
+
+
+async function handleCreatePost(event) {
+
+    event.preventDefault();
+
+
+    if (state.submitting) {
+        return;
+    }
+
+
+    const authorName =
+        dom.authorName.value.trim();
+
+
+    const skill =
+        dom.skillInput.value.trim();
+
+
+    const description =
+        dom.descriptionInput.value.trim();
+
+
+    const meeting =
+        document.querySelector(
+            'input[name="liveOption"]:checked'
+        );
+
+
+    const meetingEnabled =
+        meeting?.value === "meeting";
+
+
+    const meetingUrl =
+        meetingEnabled
+            ? dom.meetingUrl.value.trim()
+            : "";
+
+
+    if (!authorName) {
+
+        showToast(
+            "Add your name first.",
+            "!"
+        );
+
+        dom.authorName.focus();
+
+        return;
+    }
+
+
+    if (!skill) {
+
+        showToast(
+            "Give your skill a name.",
+            "!"
+        );
+
+        dom.skillInput.focus();
+
+        return;
+    }
+
+
+    if (!description) {
+
+        showToast(
+            "Add a description.",
+            "!"
+        );
+
+        dom.descriptionInput.focus();
+
+        return;
+    }
+
+
+    if (meetingEnabled) {
+
+        if (!meetingUrl) {
+
+            showToast(
+                "Add the meeting link.",
+                "!"
+            );
+
+            dom.meetingUrl.focus();
+
+            return;
+        }
+
+
+        if (!isValidHttpUrl(meetingUrl)) {
+
+            showToast(
+                "Use a valid http or https link.",
+                "!"
+            );
+
+            dom.meetingUrl.focus();
+
+            return;
+        }
+    }
+
+
+    setUserName(authorName);
+
+
+    const payload = {
+        uid: getUID(),
+        authorName,
+        skill,
+        description,
+        imageUrl: state.selectedImage || "",
+        meetingUrl: meetingUrl || ""
+    };
+
+
+    state.submitting =
+        true;
+
+
+    setSubmitLoading(true);
+
+
+    try {
+
+        const response =
+            await fetch(
+                POSTS_ENDPOINT,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+
+                        "Accept":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify(payload)
                 }
             );
 
-        }
-    );
+
+        if (!response.ok) {
+
+            let message =
+                `Server returned ${response.status}`;
 
 
+            try {
 
-    document
-        .getElementById("treeButton")
-        .addEventListener(
-            "click",
-            () => {
+                const errorData =
+                    await response.json();
 
-                document
-                    .getElementById("tree")
-                    .scrollIntoView({
-                        behavior: "smooth"
-                    });
 
+                if (errorData?.error) {
+                    message =
+                        errorData.error;
+                }
+
+            } catch {
+                // Server may not have returned JSON.
             }
+
+
+            throw new Error(message);
+        }
+
+
+        const created =
+            await response.json();
+
+
+        const normalized =
+            normalizePost(created);
+
+
+        state.posts.unshift(
+            normalized
         );
 
+
+        applyFilters();
+
+        updateStats();
+
+        renderUserTree();
+
+
+        closeModal(
+            dom.createModal
+        );
+
+
+        resetCreateForm();
+
+
+        showToast(
+            "Skill added to your tree.",
+            "✓"
+        );
+
+
+        dom.notificationDot.hidden =
+            true;
+
+
+        document
+            .getElementById("discover")
+            ?.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+
+
+    } catch (error) {
+
+        console.error(
+            "Create post failed:",
+            error
+        );
+
+
+        showToast(
+            getFriendlyApiError(error),
+            "!"
+        );
+
+    } finally {
+
+        state.submitting =
+            false;
+
+        setSubmitLoading(false);
+    }
 }
 
 
+function setSubmitLoading(loading) {
+
+    if (!dom.submitPostButton) {
+        return;
+    }
+
+
+    dom.submitPostButton.disabled =
+        loading;
+
+
+    if (loading) {
+
+        dom.submitPostButton.dataset.originalText =
+            dom.submitPostButton.textContent;
+
+
+        dom.submitPostButton.textContent =
+            "Publishing...";
+
+    } else {
+
+        dom.submitPostButton.innerHTML =
+            `
+                Publish skill
+                <span
+                    class="button-arrow"
+                    aria-hidden="true"
+                >
+                    →
+                </span>
+            `;
+    }
+}
+
+
+function getFriendlyApiError(error) {
+
+    const message =
+        error?.message || "";
+
+
+    if (
+        message.includes(
+            "Failed to fetch"
+        )
+    ) {
+
+        return (
+            "Couldn't reach the Skilltree server."
+        );
+    }
+
+
+    if (
+        message.includes(
+            "relation"
+        ) &&
+        message.includes(
+            "does not exist"
+        )
+    ) {
+
+        return (
+            "The posts table hasn't been created yet."
+        );
+    }
+
+
+    return (
+        message ||
+        "Something went wrong while publishing."
+    );
+}
+
 
 /* =========================================================
-   CLOSE POST DETAIL
+   IMAGE UPLOAD
 ========================================================= */
 
-postModalClose.addEventListener(
-    "click",
-    () => {
+function bindImageUpload() {
 
-        postModal.classList.remove(
-            "open"
+    dom.uploadBox?.addEventListener(
+        "click",
+        () => dom.imageInput?.click()
+    );
+
+
+    dom.uploadBox?.addEventListener(
+        "keydown",
+        event => {
+
+            if (
+                event.key === "Enter" ||
+                event.key === " "
+            ) {
+
+                event.preventDefault();
+
+                dom.imageInput?.click();
+            }
+        }
+    );
+
+
+    dom.imageInput?.addEventListener(
+        "change",
+        handleImageSelection
+    );
+}
+
+
+async function handleImageSelection(event) {
+
+    const file =
+        event.target.files?.[0];
+
+
+    if (!file) {
+        return;
+    }
+
+
+    if (!file.type.startsWith("image/")) {
+
+        showToast(
+            "Please choose an image.",
+            "!"
         );
 
-        document.body.style.overflow =
+        event.target.value =
             "";
 
+        return;
     }
-);
 
 
-postModal.addEventListener(
-    "click",
-    event => {
+    if (file.size > 5 * 1024 * 1024) {
 
-        if (
-            event.target === postModal
-        ) {
+        showToast(
+            "That image is larger than 5 MB.",
+            "!"
+        );
 
-            postModal.classList.remove(
-                "open"
+        event.target.value =
+            "";
+
+        return;
+    }
+
+
+    try {
+
+        showToast(
+            "Preparing image...",
+            "↑"
+        );
+
+
+        const compressed =
+            await compressImage(file);
+
+
+        state.selectedImage =
+            compressed;
+
+
+        dom.imagePreview.src =
+            compressed;
+
+
+        dom.uploadBox.classList.add(
+            "has-image"
+        );
+
+
+        showToast(
+            "Image ready.",
+            "✓"
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Image processing failed:",
+            error
+        );
+
+
+        showToast(
+            "Couldn't process that image.",
+            "!"
+        );
+
+
+        event.target.value =
+            "";
+    }
+}
+
+
+/*
+    Compress the image before putting it into the
+    PostgreSQL TEXT field as a data URL.
+
+    This keeps the database payload much smaller than
+    uploading the original camera/photo file.
+*/
+
+async function compressImage(file) {
+
+    const source =
+        await readFileAsDataURL(file);
+
+
+    const image =
+        await loadImage(source);
+
+
+    const maxWidth =
+        1200;
+
+
+    const scale =
+        Math.min(
+            1,
+            maxWidth / image.width
+        );
+
+
+    const width =
+        Math.round(
+            image.width * scale
+        );
+
+
+    const height =
+        Math.round(
+            image.height * scale
+        );
+
+
+    const canvas =
+        document.createElement("canvas");
+
+
+    canvas.width =
+        width;
+
+    canvas.height =
+        height;
+
+
+    const context =
+        canvas.getContext("2d");
+
+
+    if (!context) {
+        throw new Error(
+            "Canvas unavailable"
+        );
+    }
+
+
+    context.drawImage(
+        image,
+        0,
+        0,
+        width,
+        height
+    );
+
+
+    return canvas.toDataURL(
+        "image/jpeg",
+        0.76
+    );
+}
+
+
+function readFileAsDataURL(file) {
+
+    return new Promise(
+        (resolve, reject) => {
+
+            const reader =
+                new FileReader();
+
+
+            reader.onload =
+                () => resolve(
+                    reader.result
+                );
+
+
+            reader.onerror =
+                () => reject(
+                    reader.error ||
+                    new Error(
+                        "Could not read image"
+                    )
+                );
+
+
+            reader.readAsDataURL(
+                file
             );
-
-            document.body.style.overflow =
-                "";
-
         }
+    );
+}
 
-    }
-);
 
+function loadImage(source) {
+
+    return new Promise(
+        (resolve, reject) => {
+
+            const image =
+                new Image();
+
+
+            image.onload =
+                () => resolve(image);
+
+
+            image.onerror =
+                () => reject(
+                    new Error(
+                        "Could not load image"
+                    )
+                );
+
+
+            image.src =
+                source;
+        }
+    );
+}
 
 
 /* =========================================================
-   CLOSE ALL MODALS
+   LIVE OPTIONS
 ========================================================= */
 
-function closeAllModals() {
+function bindLiveOptions() {
 
-    modalOverlay.classList.remove(
-        "open"
+    const options =
+        document.querySelectorAll(
+            'input[name="liveOption"]'
+        );
+
+
+    options.forEach(option => {
+
+        option.addEventListener(
+            "change",
+            () => {
+
+                const visible =
+                    option.value ===
+                    "meeting";
+
+
+                dom.meetingLink?.classList.toggle(
+                    "visible",
+                    visible
+                );
+
+
+                if (!visible) {
+
+                    dom.meetingUrl.value =
+                        "";
+                }
+            }
+        );
+    });
+}
+
+
+/* =========================================================
+   CHARACTER COUNT
+========================================================= */
+
+function bindCharacterCounter() {
+
+    dom.descriptionInput?.addEventListener(
+        "input",
+        updateCharacterCount
+    );
+}
+
+
+function updateCharacterCount() {
+
+    if (
+        !dom.descriptionInput ||
+        !dom.characterCount
+    ) {
+        return;
+    }
+
+
+    const length =
+        dom.descriptionInput.value.length;
+
+
+    dom.characterCount.textContent =
+        `${length} / 2000`;
+}
+
+
+/* =========================================================
+   DETAIL MODAL
+========================================================= */
+
+function openDetailModal(post) {
+
+    if (!post) {
+        return;
+    }
+
+
+    state.activePost =
+        post;
+
+
+    dom.detailTitle.textContent =
+        post.skill;
+
+
+    dom.detailAuthor.textContent =
+        `by ${post.authorName} · ${formatDate(post.createdAt)}`;
+
+
+    dom.detailText.textContent =
+        post.description;
+
+
+    if (post.imageUrl) {
+
+        dom.detailImage.src =
+            post.imageUrl;
+
+        dom.detailImage.alt =
+            `${post.skill} by ${post.authorName}`;
+
+        dom.detailImage.hidden =
+            false;
+
+    } else {
+
+        dom.detailImage.src =
+            "";
+
+        dom.detailImage.hidden =
+            true;
+    }
+
+
+    if (post.meetingUrl) {
+
+        dom.detailLive.hidden =
+            false;
+
+
+        dom.detailMeetingLink.href =
+            post.meetingUrl;
+
+
+        dom.detailMeetingLink.textContent =
+            post.meetingUrl;
+
+    } else {
+
+        dom.detailLive.hidden =
+            true;
+
+
+        dom.detailMeetingLink.href =
+            "#";
+    }
+
+
+    openModal(
+        dom.detailModal
+    );
+}
+
+
+/* =========================================================
+   PROFILE
+========================================================= */
+
+function openProfileModal() {
+
+    updateProfileUI();
+
+    openModal(
+        dom.profileModal
     );
 
-    profileModal.classList.remove(
-        "open"
-    );
 
-    postModal.classList.remove(
+    setTimeout(
+        () => {
+            dom.profileNameInput?.focus();
+        },
+        100
+    );
+}
+
+
+function bindProfileForm() {
+
+    dom.profileForm?.addEventListener(
+        "submit",
+        event => {
+
+            event.preventDefault();
+
+
+            const name =
+                dom.profileNameInput.value.trim();
+
+
+            if (!name) {
+
+                showToast(
+                    "Enter a name first.",
+                    "!"
+                );
+
+                return;
+            }
+
+
+            setUserName(name);
+
+
+            closeModal(
+                dom.profileModal
+            );
+
+
+            showToast(
+                "Profile updated.",
+                "✓"
+            );
+        }
+    );
+}
+
+
+/* =========================================================
+   MODALS
+========================================================= */
+
+function bindModalControls() {
+
+    document
+        .querySelectorAll(
+            "[data-close-modal]"
+        )
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    const id =
+                        button.dataset.closeModal;
+
+
+                    const modal =
+                        document.getElementById(id);
+
+
+                    closeModal(modal);
+                }
+            );
+        });
+
+
+    [
+        dom.createModal,
+        dom.detailModal,
+        dom.profileModal
+    ]
+        .filter(Boolean)
+        .forEach(modal => {
+
+            modal.addEventListener(
+                "click",
+                event => {
+
+                    if (
+                        event.target === modal
+                    ) {
+
+                        closeModal(
+                            modal
+                        );
+                    }
+                }
+            );
+        });
+}
+
+
+function openModal(modal) {
+
+    if (!modal) {
+        return;
+    }
+
+
+    modal.classList.add(
         "open"
     );
 
 
     document.body.style.overflow =
-        "";
-
+        "hidden";
 }
 
 
+function closeModal(modal) {
 
-/* =========================================================
-   TOAST
-========================================================= */
-
-let toastTimeout;
-
-
-function showToast(message) {
-
-    toastMessage.textContent =
-        message;
+    if (!modal) {
+        return;
+    }
 
 
-    toast.classList.add(
-        "show"
+    modal.classList.remove(
+        "open"
     );
 
 
-    clearTimeout(
-        toastTimeout
-    );
-
-
-    toastTimeout =
-        setTimeout(
-            () => {
-
-                toast.classList.remove(
-                    "show"
-                );
-
-            },
-            2600
+    const anyOpen =
+        document.querySelector(
+            ".modal-overlay.open"
         );
 
+
+    if (!anyOpen) {
+
+        document.body.style.overflow =
+            "";
+    }
 }
 
 
-
 /* =========================================================
-   TIME FORMAT
+   KEYBOARD SHORTCUTS
 ========================================================= */
 
-function formatTime(timestamp) {
+function bindKeyboardShortcuts() {
+
+    document.addEventListener(
+        "keydown",
+        event => {
+
+            if (
+                event.key === "/" &&
+                !isTypingTarget(event.target)
+            ) {
+
+                event.preventDefault();
+
+                dom.searchInput?.focus();
+
+                return;
+            }
+
+
+            if (event.key === "Escape") {
+
+                const openModal =
+                    document.querySelector(
+                        ".modal-overlay.open"
+                    );
+
+
+                if (openModal) {
+
+                    closeModal(
+                        openModal
+                    );
+                }
+            }
+        }
+    );
+}
+
+
+function isTypingTarget(element) {
+
+    if (!element) {
+        return false;
+    }
+
+
+    const tag =
+        element.tagName?.toLowerCase();
+
+
+    return (
+        tag === "input" ||
+        tag === "textarea" ||
+        tag === "select" ||
+        element.isContentEditable
+    );
+}
+
+
+/* =========================================================
+   TREE
+========================================================= */
+
+function renderInitialTree() {
+
+    const nodes =
+        document.querySelectorAll(
+            ".large-node"
+        );
+
+
+    nodes.forEach(node => {
+
+        node.title =
+            "Your skill";
+    });
+}
+
+
+function renderUserTree() {
+
+    const userPosts =
+        state.posts.filter(
+            post =>
+                post.uid === getUID()
+        );
+
+
+    const nodes =
+        document.querySelectorAll(
+            ".large-node"
+        );
+
+
+    nodes.forEach(
+        (node, index) => {
+
+            const post =
+                userPosts[index];
+
+
+            node.replaceChildren();
+
+
+            if (!post) {
+
+                node.style.opacity =
+                    "0.22";
+
+                node.title =
+                    "Empty skill slot";
+
+                return;
+            }
+
+
+            node.style.opacity =
+                "1";
+
+
+            node.title =
+                post.skill;
+
+
+            node.dataset.skill =
+                post.skill;
+        }
+    );
+}
+
+
+/* =========================================================
+   DATE FORMATTING
+========================================================= */
+
+function formatDate(dateValue) {
+
+    const date =
+        new Date(dateValue);
+
+
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
+        return "Recently";
+    }
+
+
+    const now =
+        new Date();
+
+
+    const difference =
+        now - date;
+
 
     const seconds =
         Math.floor(
-            (Date.now() - timestamp) /
-            1000
+            difference / 1000
         );
 
 
     if (seconds < 60) {
-        return "just now";
+        return "Just now";
     }
 
 
@@ -1916,7 +2657,6 @@ function formatTime(timestamp) {
     if (minutes < 60) {
 
         return `${minutes}m ago`;
-
     }
 
 
@@ -1929,7 +2669,6 @@ function formatTime(timestamp) {
     if (hours < 24) {
 
         return `${hours}h ago`;
-
     }
 
 
@@ -1939,45 +2678,166 @@ function formatTime(timestamp) {
         );
 
 
-    return `${days}d ago`;
+    if (days < 7) {
 
+        return `${days}d ago`;
+    }
+
+
+    return date.toLocaleDateString(
+        undefined,
+        {
+            month: "short",
+            day: "numeric"
+        }
+    );
 }
-
 
 
 /* =========================================================
-   HTML ESCAPING
+   VALIDATION
 ========================================================= */
 
-function escapeHTML(value) {
+function isValidHttpUrl(value) {
 
-    return String(value)
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-        .replace(
-            /</g,
-            "&lt;"
-        )
-        .replace(
-            />/g,
-            "&gt;"
-        )
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-        .replace(
-            /'/g,
-            "&#039;"
+    try {
+
+        const url =
+            new URL(value);
+
+
+        return (
+            url.protocol === "http:" ||
+            url.protocol === "https:"
         );
 
+    } catch {
+
+        return false;
+    }
 }
 
 
-function escapeAttribute(value) {
+/* =========================================================
+   LOADING
+========================================================= */
 
-    return escapeHTML(value);
+function setLoading(loading) {
 
+    state.loading =
+        loading;
+
+
+    if (!loading) {
+        return;
+    }
+
+
+    if (dom.resultsLabel) {
+
+        dom.resultsLabel.textContent =
+            "Loading skills...";
+    }
+
+
+    if (dom.teacherGrid) {
+
+        dom.teacherGrid.replaceChildren(
+            createEmptyState(
+                "Loading skills...",
+                "Finding people who are teaching."
+            )
+        );
+    }
+
+
+    if (dom.postGrid) {
+
+        dom.postGrid.replaceChildren(
+            createEmptyState(
+                "Loading posts...",
+                "Finding something worth learning."
+            )
+        );
+    }
 }
+
+
+/* =========================================================
+   TOASTS
+========================================================= */
+
+function showToast(
+    message,
+    icon = "✓"
+) {
+
+    if (
+        !dom.toast ||
+        !dom.toastMessage
+    ) {
+        return;
+    }
+
+
+    dom.toastMessage.textContent =
+        message;
+
+
+    dom.toastIcon.textContent =
+        icon;
+
+
+    dom.toast.classList.add(
+        "show"
+    );
+
+
+    clearTimeout(
+        state.toastTimer
+    );
+
+
+    state.toastTimer =
+        setTimeout(
+            () => {
+
+                dom.toast.classList.remove(
+                    "show"
+                );
+
+            },
+            3000
+        );
+}
+
+
+/* =========================================================
+   OFFLINE / ONLINE
+========================================================= */
+
+window.addEventListener(
+    "offline",
+    () => {
+
+        showToast(
+            "You're offline.",
+            "!"
+        );
+    }
+);
+
+
+window.addEventListener(
+    "online",
+    () => {
+
+        showToast(
+            "Connection restored.",
+            "✓"
+        );
+
+
+        loadPosts();
+    }
+);

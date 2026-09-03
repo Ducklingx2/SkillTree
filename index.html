@@ -26,6 +26,7 @@
 <nav class="navbar">
 
     <a href="#" class="logo">
+
         <span class="logo-mark">
             <span></span>
             <span></span>
@@ -33,6 +34,7 @@
         </span>
 
         <span class="logo-text">SkillTree</span>
+
     </a>
 
 
@@ -77,12 +79,19 @@
             </svg>
 
             <span class="notification-dot"></span>
+
         </button>
 
 
-        <button class="profile-button">
+        <button
+            class="profile-button"
+            id="profileButton"
+        >
 
-            <span class="profile-avatar" id="navAvatar">
+            <span
+                class="profile-avatar"
+                id="navAvatar"
+            >
                 Y
             </span>
 
@@ -136,11 +145,15 @@
                 class="primary-button"
                 id="teachButton"
             >
-                <span>Share a skill</span>
+
+                <span>
+                    Share a skill
+                </span>
 
                 <span class="button-arrow">
                     ↗
                 </span>
+
             </button>
 
 
@@ -158,38 +171,42 @@
 
             <div class="stat">
 
+                <strong id="skillCount">
+                    0
+                </strong>
+
+                <span>
+                    Skills shared
+                </span>
+
+            </div>
+
+
+            <div class="stat-divider"></div>
+
+
+            <div class="stat">
+
+                <strong id="peopleCount">
+                    0
+                </strong>
+
+                <span>
+                    People teaching
+                </span>
+
+            </div>
+
+
+            <div class="stat-divider"></div>
+
+
+            <div class="stat">
+
                 <strong>∞</strong>
 
                 <span>
                     Things to learn
-                </span>
-
-            </div>
-
-
-            <div class="stat-divider"></div>
-
-
-            <div class="stat">
-
-                <strong>1</strong>
-
-                <span>
-                    Community
-                </span>
-
-            </div>
-
-
-            <div class="stat-divider"></div>
-
-
-            <div class="stat">
-
-                <strong>YOU</strong>
-
-                <span>
-                    Build your tree
                 </span>
 
             </div>
@@ -201,7 +218,7 @@
 
 
     <!-- =====================================================
-         HERO SkillTree
+         HERO TREE
     ====================================================== -->
 
     <div class="hero-tree">
@@ -298,9 +315,7 @@
 
 
 
-    <!-- =====================================================
-         SEARCH
-    ====================================================== -->
+    <!-- SEARCH -->
 
     <div class="search-container">
 
@@ -333,13 +348,14 @@
 
 
 
-    <!-- =====================================================
-         DISCOVER TOOLBAR
-    ====================================================== -->
+    <!-- TOOLBAR -->
 
     <div class="discover-toolbar">
 
-        <div class="results-label">
+        <div
+            class="results-label"
+            id="resultsLabel"
+        >
             Popular right now
         </div>
 
@@ -367,10 +383,7 @@
 
 
 
-    <!-- =====================================================
-         TEACHER CARDS
-         JS WILL RENDER USER-GENERATED CONTENT HERE
-    ====================================================== -->
+    <!-- TEACHER / SKILL CARDS -->
 
     <div
         class="teacher-grid"
@@ -467,6 +480,7 @@
             class="primary-button"
             id="treeButton"
         >
+
             <span>
                 View my tree
             </span>
@@ -474,31 +488,25 @@
             <span class="button-arrow">
                 ↗
             </span>
+
         </button>
 
     </div>
 
 
 
-    <!-- =====================================================
-         TREE VISUAL
-    ====================================================== -->
+    <!-- TREE VISUAL -->
 
-    <div class="large-tree">
+    <div
+        class="large-tree"
+        id="largeTree"
+    >
 
         <div class="large-line l1"></div>
         <div class="large-line l2"></div>
         <div class="large-line l3"></div>
         <div class="large-line l4"></div>
         <div class="large-line l5"></div>
-
-
-        <button class="large-node n1"></button>
-        <button class="large-node n2"></button>
-        <button class="large-node n3"></button>
-        <button class="large-node n4"></button>
-        <button class="large-node n5"></button>
-        <button class="large-node n6"></button>
 
 
         <div class="large-center">
@@ -512,7 +520,7 @@
 
 
 <!-- =========================================================
-     CREATE POST CTA
+     CTA
 ========================================================= -->
 
 <section class="cta-section">
@@ -600,7 +608,6 @@
         </div>
 
 
-
         <form id="postForm">
 
 
@@ -625,7 +632,7 @@
 
 
 
-            <!-- TEACHING CONTENT -->
+            <!-- CONTENT -->
 
             <div class="form-group">
 
@@ -643,10 +650,13 @@
 
 
                 <div class="character-count">
+
                     <span id="characterCount">
                         0
                     </span>
+
                     / 3000
+
                 </div>
 
             </div>
@@ -659,6 +669,7 @@
 
                 <label>
                     Add an image
+
                     <span class="optional">
                         optional
                     </span>
@@ -717,16 +728,19 @@
             <div class="form-group">
 
                 <label>
-                    Want to teach live?
+
+                    Teach live?
+
                     <span class="optional">
                         optional
                     </span>
+
                 </label>
 
 
                 <p class="field-help">
-                    Add a Zoom or Google Meet link so
-                    people can connect with you directly.
+                    If you'd like, people can connect with
+                    you on Zoom or Google Meet.
                 </p>
 
 
@@ -817,7 +831,7 @@
 
 
 <!-- =========================================================
-     PROFILE SETUP MODAL
+     PROFILE MODAL
 ========================================================= -->
 
 <div
@@ -838,18 +852,18 @@
         <div class="modal-header">
 
             <span class="section-kicker">
-                WELCOME
+                PROFILE
             </span>
 
 
             <h2>
-                What should we call you?
+                Your SkillTree identity.
             </h2>
 
 
             <p>
-                This name is saved locally for now.
-                No account backend required.
+                This is saved locally in your browser
+                for this prototype.
             </p>
 
         </div>
@@ -860,7 +874,7 @@
             <div class="form-group">
 
                 <label for="displayName">
-                    Your name
+                    Display name
                 </label>
 
 
@@ -882,13 +896,19 @@
                 </label>
 
 
-                <input
-                    id="username"
-                    type="text"
-                    placeholder="alexbuilds"
-                    maxlength="30"
-                    required
-                >
+                <div class="username-input">
+
+                    <span>@</span>
+
+                    <input
+                        id="username"
+                        type="text"
+                        placeholder="alexbuilds"
+                        maxlength="30"
+                        required
+                    >
+
+                </div>
 
             </div>
 
@@ -899,7 +919,7 @@
             >
 
                 <span>
-                    Continue
+                    Save profile
                 </span>
 
                 <span class="button-arrow">
@@ -911,6 +931,54 @@
         </form>
 
     </div>
+
+</div>
+
+
+
+<!-- =========================================================
+     POST DETAIL MODAL
+========================================================= -->
+
+<div
+    class="modal-overlay"
+    id="postModal"
+>
+
+    <div class="post-detail-modal">
+
+        <button
+            class="modal-close"
+            id="postModalClose"
+        >
+            ×
+        </button>
+
+
+        <div id="postDetailContent"></div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =========================================================
+     TOAST
+========================================================= -->
+
+<div
+    class="toast"
+    id="toast"
+>
+
+    <span class="toast-icon">
+        ✓
+    </span>
+
+    <span id="toastMessage">
+        Done
+    </span>
 
 </div>
 
@@ -945,7 +1013,6 @@
     </span>
 
 </footer>
-
 
 
 <script src="script.js"></script>

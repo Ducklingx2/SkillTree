@@ -97,7 +97,7 @@ func main() {
 	)
 
 	server := &http.Server{
-		Addr:    ":" + port,
+		Addr:    "0.0.0.0" + port,
 		Handler: corsMiddleware(mux),
 	}
 

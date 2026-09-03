@@ -40,7 +40,7 @@ func main() {
 	port := os.Getenv("PORT")
 
 	if port == "" {
-		port = "8080"
+		port = "10000"
 	}
 
 	db, err := database.Connect()
@@ -97,7 +97,7 @@ func main() {
 	)
 
 	server := &http.Server{
-		Addr:    "0.0.0.0:8080" + port,
+		Addr:    "0.0.0.0:" + port,
 		Handler: corsMiddleware(mux),
 	}
 

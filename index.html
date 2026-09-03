@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Skilltree</title>
+
+    <meta
+        name="description"
+        content="Learn something. Teach something. Grow your Skilltree."
+    >
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- ============================================= -->
+    <!-- BACKGROUND -->
+    <!-- ============================================= -->
+
+    <div class="background-grid"></div>
+    <div class="background-glow glow-one"></div>
+    <div class="background-glow glow-two"></div>
+
+
+    <!-- ============================================= -->
+    <!-- NAVBAR -->
+    <!-- ============================================= -->
+
+    <header class="navbar">
+
+        <div class="nav-left">
+
+            <a href="#" class="brand" data-page="discover">
+
+                <div class="brand-mark">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+
+                <span class="brand-name">skilltree</span>
+
+            </a>
+
+            <nav class="main-nav">
+
+                <button
+                    class="nav-link active"
+                    data-page="discover"
+                >
+                    Discover
+                </button>
+
+                <button
+                    class="nav-link"
+                    data-page="tree"
+                >
+                    My Tree
+                </button>
+
+            </nav>
+
+        </div>
+
+
+        <div class="nav-right">
+
+            <button
+                class="create-button"
+                id="openCreateButton"
+            >
+                <span class="plus">+</span>
+                Teach a skill
+            </button>
+
+            <button
+                class="profile-button"
+                id="profileButton"
+                aria-label="Profile"
+            >
+                <span id="profileInitial">S</span>
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- ============================================= -->
+    <!-- MAIN -->
+    <!-- ============================================= -->
+
+    <main>
+
+
+        <!-- ========================================= -->
+        <!-- DISCOVER PAGE -->
+        <!-- ========================================= -->
+
+        <section
+            class="page active-page"
+            id="discoverPage"
+        >
+
+            <div class="hero">
+
+                <div class="hero-copy">
+
+                    <div class="eyebrow">
+                        <span class="eyebrow-dot"></span>
+                        A place to learn from people
+                    </div>
+
+                    <h1>
+                        Someone knows
+                        <span>something.</span>
+                    </h1>
+
+                    <p>
+                        Discover skills people are sharing,
+                        learn from them, and grow your own tree.
+                    </p>
+
+                </div>
+
+
+                <div class="hero-stat">
+
+                    <div class="stat-number" id="skillCount">
+                        0
+                    </div>
+
+                    <div class="stat-label">
+                        skills shared
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ===================================== -->
+            <!-- DISCOVERY CONTROLS -->
+            <!-- ===================================== -->
+
+            <div class="discover-controls">
+
+                <div class="section-heading">
+
+                    <span class="section-kicker">
+                        Community
+                    </span>
+
+                    <h2>
+                        What people are teaching
+                    </h2>
+
+                </div>
+
+
+                <div class="search-box">
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                    >
+                        <circle
+                            cx="11"
+                            cy="11"
+                            r="7"
+                        ></circle>
+
+                        <path
+                            d="M16.5 16.5L21 21"
+                        ></path>
+                    </svg>
+
+                    <input
+                        type="search"
+                        id="searchInput"
+                        placeholder="Search skills, people, ideas..."
+                        autocomplete="off"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <!-- ===================================== -->
+            <!-- POSTS -->
+            <!-- ===================================== -->
+
+            <div
+                class="posts-grid"
+                id="postsGrid"
+            >
+
+                <div class="loading-state">
+
+                    <div class="loader"></div>
+
+                    <p>
+                        Loading the tree...
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- EMPTY STATE -->
+
+            <div
+                class="empty-state hidden"
+                id="emptyState"
+            >
+
+                <div class="empty-icon">
+                    ◌
+                </div>
+
+                <h3>
+                    Nothing here yet.
+                </h3>
+
+                <p>
+                    Be the first person to teach something.
+                </p>
+
+                <button
+                    class="primary-button"
+                    id="emptyCreateButton"
+                >
+                    Teach a skill
+                </button>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ========================================= -->
+        <!-- TREE PAGE -->
+        <!-- ========================================= -->
+
+        <section
+            class="page"
+            id="treePage"
+        >
+
+            <div class="tree-header">
+
+                <div>
+
+                    <div class="eyebrow">
+                        <span class="eyebrow-dot"></span>
+                        Your progression
+                    </div>
+
+                    <h1>
+                        My Skilltree
+                    </h1>
+
+                    <p>
+                        Every skill you teach becomes part
+                        of your personal tree.
+                    </p>
+
+                </div>
+
+
+                <button
+                    class="create-button"
+                    id="treeCreateButton"
+                >
+                    <span class="plus">+</span>
+                    Add a skill
+                </button>
+
+            </div>
+
+
+            <div class="tree-stats">
+
+                <div class="tree-stat">
+
+                    <strong id="treeSkillCount">
+                        0
+                    </strong>
+
+                    <span>
+                        skills
+                    </span>
+
+                </div>
+
+
+                <div class="tree-stat">
+
+                    <strong id="treePostCount">
+                        0
+                    </strong>
+
+                    <span>
+                        posts
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div
+                class="tree-container"
+                id="treeContainer"
+            >
+
+                <div class="tree-empty">
+
+                    <div class="tree-empty-symbol">
+                        +
+                    </div>
+
+                    <h3>
+                        Your tree starts here.
+                    </h3>
+
+                    <p>
+                        Teach your first skill and watch it grow.
+                    </p>
+
+                    <button
+                        class="primary-button"
+                        id="treeEmptyCreateButton"
+                    >
+                        Teach your first skill
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+
+    <!-- ============================================= -->
+    <!-- CREATE POST MODAL -->
+    <!-- ============================================= -->
+
+    <div
+        class="modal-backdrop"
+        id="createModal"
+        aria-hidden="true"
+    >
+
+        <div
+            class="modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modalTitle"
+        >
+
+            <button
+                class="modal-close"
+                id="closeCreateButton"
+                aria-label="Close"
+            >
+                ×
+            </button>
+
+
+            <div class="modal-header">
+
+                <div class="modal-icon">
+                    +
+                </div>
+
+                <div>
+
+                    <span class="section-kicker">
+                        Share knowledge
+                    </span>
+
+                    <h2 id="modalTitle">
+                        Teach a skill
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <form id="createPostForm">
+
+
+                <!-- NAME -->
+
+                <div class="form-group">
+
+                    <label for="authorName">
+                        Your name
+                    </label>
+
+                    <input
+                        id="authorName"
+                        name="authorName"
+                        type="text"
+                        placeholder="What should people call you?"
+                        maxlength="100"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- SKILL -->
+
+                <div class="form-group">
+
+                    <label for="skillName">
+                        What are you teaching?
+                    </label>
+
+                    <input
+                        id="skillName"
+                        name="skill"
+                        type="text"
+                        placeholder="Name your skill however you want"
+                        maxlength="200"
+                        required
+                    >
+
+                    <small>
+                        There are no categories. It's your skill,
+                        so you name it.
+                    </small>
+
+                </div>
+
+
+                <!-- DESCRIPTION -->
+
+                <div class="form-group">
+
+                    <label for="description">
+                        Tell people about it
+                    </label>
+
+                    <textarea
+                        id="description"
+                        name="description"
+                        placeholder="Explain what you're teaching..."
+                        maxlength="5000"
+                        rows="5"
+                        required
+                    ></textarea>
+
+                </div>
+
+
+                <!-- IMAGE -->
+
+                <div class="form-group">
+
+                    <label for="imageUrl">
+                        Image URL
+                        <span class="optional">
+                            optional
+                        </span>
+                    </label>
+
+                    <input
+                        id="imageUrl"
+                        name="imageUrl"
+                        type="url"
+                        placeholder="https://..."
+                    >
+
+                    <small>
+                        Add an image showing what you're teaching.
+                    </small>
+
+                </div>
+
+
+                <!-- MEETING -->
+
+                <div class="form-group">
+
+                    <label for="meetingUrl">
+                        Live teaching link
+                        <span class="optional">
+                            optional
+                        </span>
+                    </label>
+
+                    <input
+                        id="meetingUrl"
+                        name="meetingUrl"
+                        type="url"
+                        placeholder="Zoom or Google Meet link"
+                    >
+
+                </div>
+
+
+                <div
+                    class="form-error hidden"
+                    id="formError"
+                ></div>
+
+
+                <button
+                    type="submit"
+                    class="submit-button"
+                    id="submitPostButton"
+                >
+                    <span>
+                        Publish skill
+                    </span>
+
+                    <span class="button-arrow">
+                        →
+                    </span>
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ============================================= -->
+    <!-- PROFILE POPOVER -->
+    <!-- ============================================= -->
+
+    <div
+        class="profile-popover hidden"
+        id="profilePopover"
+    >
+
+        <div class="popover-avatar" id="popoverAvatar">
+            S
+        </div>
+
+        <div>
+
+            <strong id="popoverName">
+                Skilltree learner
+            </strong>
+
+            <span>
+                Your local profile
+            </span>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ============================================= -->
+    <!-- TOAST -->
+    <!-- ============================================= -->
+
+    <div
+        class="toast"
+        id="toast"
+    >
+
+        <span class="toast-symbol">
+            ✓
+        </span>
+
+        <span id="toastMessage">
+            Done
+        </span>
+
+    </div>
+
+
+    <script src="script.js"></script>
+
+</body>
+</html>

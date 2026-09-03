@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -22,11 +23,16 @@ func NewPostHandler(db *pgxpool.Pool) *PostHandler {
 	}
 }
 
+// GetPosts returns the latest Skilltree posts.
 func (h *PostHandler) GetPosts(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(
-		r.Context(),
-		5*time.Second,
-	)
+	if r.Method != http.MethodGet {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{
+			"error": "Method not allowed",
+		})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
 	rows, err := h.DB.Query(ctx, `
@@ -45,13 +51,11 @@ func (h *PostHandler) GetPosts(w http.ResponseWriter, r *http.Request) {
 	`)
 
 	if err != nil {
-		writeJSON(
-			w,
-			http.StatusInternalServerError,
-			map[string]string{
-				"error": "Failed to retrieve posts",
-			},
-		)
+		log.Printf("GetPosts: database query failed: %v", err)
+
+		writeJSON(w, http.StatusInternalServerError, map[string]string{
+			"error": "Failed to retrieve posts",
+		})
 		return
 	}
 
@@ -62,7 +66,7 @@ func (h *PostHandler) GetPosts(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var post models.Post
 
-		err := rows.Scan(
+		if err := rows.Scan(
 			&post.ID,
 			&post.UID,
 			&post.AuthorName,
@@ -71,16 +75,12 @@ func (h *PostHandler) GetPosts(w http.ResponseWriter, r *http.Request) {
 			&post.ImageURL,
 			&post.MeetingURL,
 			&post.CreatedAt,
-		)
+		); err != nil {
+			log.Printf("GetPosts: row scan failed: %v", err)
 
-		if err != nil {
-			writeJSON(
-				w,
-				http.StatusInternalServerError,
-				map[string]string{
-					"error": "Failed to read post",
-				},
-			)
+			writeJSON(w, http.StatusInternalServerError, map[string]string{
+				"error": "Failed to read post",
+			})
 			return
 		}
 
@@ -88,39 +88,42 @@ func (h *PostHandler) GetPosts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := rows.Err(); err != nil {
-		writeJSON(
-			w,
-			http.StatusInternalServerError,
-			map[string]string{
-				"error": "Failed to process posts",
-			},
-		)
+		log.Printf("GetPosts: row iteration failed: %v", err)
+
+		writeJSON(w, http.StatusInternalServerError, map[string]string{
+			"error": "Failed to process posts",
+		})
 		return
 	}
 
-	writeJSON(
-		w,
-		http.StatusOK,
-		posts,
-	)
+	writeJSON(w, http.StatusOK, posts)
 }
 
+// CreatePost creates a new Skilltree post.
 func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{
+			"error": "Method not allowed",
+		})
+		return
+	}
+
+	defer r.Body.Close()
+
 	var request models.CreatePostRequest
 
 	decoder := json.NewDecoder(r.Body)
 
 	if err := decoder.Decode(&request); err != nil {
-		writeJSON(
-			w,
-			http.StatusBadRequest,
-			map[string]string{
-				"error": "Invalid JSON",
-			},
-		)
+		log.Printf("CreatePost: invalid JSON: %v", err)
+
+		writeJSON(w, http.StatusBadRequest, map[string]string{
+			"error": "Invalid JSON",
+		})
 		return
 	}
 
+	// Clean user-provided values.
 	request.UID = strings.TrimSpace(request.UID)
 	request.AuthorName = strings.TrimSpace(request.AuthorName)
 	request.Skill = strings.TrimSpace(request.Skill)
@@ -128,54 +131,36 @@ func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 	request.ImageURL = strings.TrimSpace(request.ImageURL)
 	request.MeetingURL = strings.TrimSpace(request.MeetingURL)
 
+	// Required fields.
 	if request.UID == "" {
-		writeJSON(
-			w,
-			http.StatusBadRequest,
-			map[string]string{
-				"error": "UID is required",
-			},
-		)
+		writeJSON(w, http.StatusBadRequest, map[string]string{
+			"error": "UID is required",
+		})
 		return
 	}
 
 	if request.AuthorName == "" {
-		writeJSON(
-			w,
-			http.StatusBadRequest,
-			map[string]string{
-				"error": "Author name is required",
-			},
-		)
+		writeJSON(w, http.StatusBadRequest, map[string]string{
+			"error": "Author name is required",
+		})
 		return
 	}
 
 	if request.Skill == "" {
-		writeJSON(
-			w,
-			http.StatusBadRequest,
-			map[string]string{
-				"error": "Skill name is required",
-			},
-		)
+		writeJSON(w, http.StatusBadRequest, map[string]string{
+			"error": "Skill name is required",
+		})
 		return
 	}
 
 	if request.Description == "" {
-		writeJSON(
-			w,
-			http.StatusBadRequest,
-			map[string]string{
-				"error": "Description is required",
-			},
-		)
+		writeJSON(w, http.StatusBadRequest, map[string]string{
+			"error": "Description is required",
+		})
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(
-		r.Context(),
-		5*time.Second,
-	)
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
 	var post models.Post
@@ -191,7 +176,7 @@ func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 			image_url,
 			meeting_url
 		)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		VALUES ($1, $2, $3, $4, NULLIF($5, ''), NULLIF($6, ''))
 		RETURNING
 			id,
 			uid,
@@ -220,34 +205,27 @@ func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err != nil {
-		writeJSON(
-			w,
-			http.StatusInternalServerError,
-			map[string]string{
-				"error": "Failed to create post",
-			},
-		)
+		log.Printf("CreatePost: database insert failed: %v", err)
+
+		writeJSON(w, http.StatusInternalServerError, map[string]string{
+			"error": "Failed to create post",
+		})
 		return
 	}
 
-	writeJSON(
-		w,
-		http.StatusCreated,
-		post,
-	)
+	writeJSON(w, http.StatusCreated, post)
 }
 
+// writeJSON sends a JSON response.
 func writeJSON(
 	w http.ResponseWriter,
 	status int,
 	data any,
 ) {
-	w.Header().Set(
-		"Content-Type",
-		"application/json",
-	)
-
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 
-	_ = json.NewEncoder(w).Encode(data)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		log.Printf("writeJSON: failed to encode response: %v", err)
+	}
 }

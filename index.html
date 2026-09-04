@@ -2,1020 +2,1122 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="SkillTree is a social learning platform where people teach what they know and grow their own skills."
+    >
 
     <title>SkillTree</title>
 
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
     <link
-        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap"
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap"
         rel="stylesheet"
     >
 
+    <!-- Your CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<!-- =========================================================
-     NAVBAR
-========================================================= -->
+    <!-- =====================================================
+         NAVBAR
+    ====================================================== -->
 
-<nav class="navbar">
+    <nav class="navbar">
 
-    <a href="#" class="logo">
+        <a href="#home" class="logo" aria-label="SkillTree home">
 
-        <span class="logo-mark">
-            <span></span>
-            <span></span>
-            <span></span>
-        </span>
-
-        <span class="logo-text">SkillTree</span>
-
-    </a>
-
-
-    <div class="nav-links">
-
-        <a href="#discover" class="active">
-            Discover
-        </a>
-
-        <a href="#tree">
-            My Tree
-        </a>
-
-        <a href="#community">
-            Community
-        </a>
-
-    </div>
-
-
-    <div class="nav-actions">
-
-        <button
-            class="icon-button"
-            id="searchButton"
-            aria-label="Search"
-        >
-            <svg viewBox="0 0 24 24">
-                <circle cx="11" cy="11" r="6.5"></circle>
-                <path d="M16 16L21 21"></path>
-            </svg>
-        </button>
-
-
-        <button
-            class="icon-button notification-button"
-            aria-label="Notifications"
-        >
-            <svg viewBox="0 0 24 24">
-                <path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
-                <path d="M10 21h4"></path>
-            </svg>
-
-            <span class="notification-dot"></span>
-
-        </button>
-
-
-        <button
-            class="profile-button"
-            id="profileButton"
-        >
-
-            <span
-                class="profile-avatar"
-                id="navAvatar"
-            >
-                Y
+            <span class="logo-mark" aria-hidden="true">
+                <span></span>
+                <span></span>
+                <span></span>
             </span>
 
-            <span id="navUsername">
-                You
-            </span>
+            <span>SkillTree</span>
 
-        </button>
-
-    </div>
-
-</nav>
+        </a>
 
 
+        <div class="nav-links">
 
-<!-- =========================================================
-     HERO
-========================================================= -->
+            <a href="#home" class="active" data-nav="home">
+                Home
+            </a>
 
-<main>
+            <a href="#discover" data-nav="discover">
+                Discover
+            </a>
 
-<section class="hero">
-
-    <div class="hero-content">
-
-        <div class="eyebrow">
-
-            <span class="eyebrow-dot"></span>
-
-            A place for people who know things
-
-        </div>
-
-
-        <h1>
-            Everyone knows<br>
-            <span>something.</span>
-        </h1>
-
-
-        <p class="hero-description">
-            SkillTree is a community where people teach
-            what they know, learn from each other, and
-            grow their own collection of skills.
-        </p>
-
-
-        <div class="hero-actions">
-
-            <button
-                class="primary-button"
-                id="teachButton"
-            >
-
-                <span>
-                    Share a skill
-                </span>
-
-                <span class="button-arrow">
-                    ↗
-                </span>
-
-            </button>
-
-
-            <a
-                href="#discover"
-                class="secondary-button"
-            >
-                Explore people
+            <a href="#tree" data-nav="tree">
+                My Tree
             </a>
 
         </div>
 
 
-        <div class="hero-stats">
-
-            <div class="stat">
-
-                <strong id="skillCount">
-                    0
-                </strong>
-
-                <span>
-                    Skills shared
-                </span>
-
-            </div>
-
-
-            <div class="stat-divider"></div>
-
-
-            <div class="stat">
-
-                <strong id="peopleCount">
-                    0
-                </strong>
-
-                <span>
-                    People teaching
-                </span>
-
-            </div>
-
-
-            <div class="stat-divider"></div>
-
-
-            <div class="stat">
-
-                <strong>∞</strong>
-
-                <span>
-                    Things to learn
-                </span>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-
-    <!-- =====================================================
-         HERO TREE
-    ====================================================== -->
-
-    <div class="hero-tree">
-
-        <div class="tree-glow"></div>
-
-
-        <div class="tree-line line-a"></div>
-        <div class="tree-line line-b"></div>
-        <div class="tree-line line-c"></div>
-        <div class="tree-line line-d"></div>
-
-
-        <button class="tree-node node-main">
-            <span></span>
-        </button>
-
-
-        <button class="tree-node node-one">
-            <span></span>
-        </button>
-
-
-        <button class="tree-node node-two">
-            <span></span>
-        </button>
-
-
-        <button class="tree-node node-three">
-            <span></span>
-        </button>
-
-
-        <button class="tree-node node-four">
-            <span></span>
-        </button>
-
-
-        <div class="tree-label">
-
-            <small>
-                YOUR
-            </small>
-
-            <strong>
-                KNOWLEDGE
-            </strong>
-
-        </div>
-
-    </div>
-
-</section>
-
-
-
-<!-- =========================================================
-     DISCOVER
-========================================================= -->
-
-<section
-    class="section"
-    id="discover"
->
-
-    <div class="section-heading">
-
-        <div>
-
-            <span class="section-kicker">
-                DISCOVER
-            </span>
-
-
-            <h2>
-                Learn from<br>
-                real people.
-            </h2>
-
-        </div>
-
-
-        <div class="section-description">
-
-            <p>
-                Every skill here comes from a person.
-                They choose what to call it, what to
-                teach, and how to teach it.
-            </p>
-
-        </div>
-
-    </div>
-
-
-
-    <!-- SEARCH -->
-
-    <div class="search-container">
-
-        <svg viewBox="0 0 24 24">
-
-            <circle
-                cx="11"
-                cy="11"
-                r="6.5"
-            ></circle>
-
-            <path
-                d="M16 16L21 21"
-            ></path>
-
-        </svg>
-
-
-        <input
-            type="text"
-            id="searchInput"
-            placeholder="Search people, skills, or ideas..."
-            autocomplete="off"
-        >
-
-
-        <kbd>/</kbd>
-
-    </div>
-
-
-
-    <!-- TOOLBAR -->
-
-    <div class="discover-toolbar">
-
-        <div
-            class="results-label"
-            id="resultsLabel"
-        >
-            Popular right now
-        </div>
-
-
-        <div class="sort-buttons">
+        <div class="nav-actions">
 
             <button
-                class="sort-button active"
-                data-sort="popular"
+                class="icon-button"
+                id="notificationButton"
+                type="button"
+                aria-label="Notifications"
             >
-                Popular
+
+                <svg
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                >
+                    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+                    <path d="M10 21h4"></path>
+                </svg>
+
+                <span
+                    class="notification-dot"
+                    id="notificationDot"
+                    aria-hidden="true"
+                ></span>
+
             </button>
 
 
             <button
-                class="sort-button"
-                data-sort="newest"
+                class="profile-button"
+                id="profileButton"
+                type="button"
+                aria-label="Open profile"
             >
-                Newest
+
+                <span
+                    class="profile-avatar"
+                    id="navAvatar"
+                >
+                    Y
+                </span>
+
+                <span
+                    class="profile-name"
+                    id="navProfileName"
+                >
+                    You
+                </span>
+
             </button>
 
         </div>
 
-    </div>
+    </nav>
 
 
+    <main>
 
-    <!-- TEACHER / SKILL CARDS -->
+        <!-- =================================================
+             HERO
+        ================================================== -->
 
-    <div
-        class="teacher-grid"
-        id="teacherGrid"
-    ></div>
+        <section
+            class="hero"
+            id="home"
+        >
 
-</section>
+            <div class="hero-content">
 
+                <div class="eyebrow">
 
+                    <span
+                        class="eyebrow-dot"
+                        aria-hidden="true"
+                    ></span>
 
-<!-- =========================================================
-     COMMUNITY
-========================================================= -->
+                    LEARN · TEACH · GROW
 
-<section
-    class="community-section"
-    id="community"
->
-
-    <div class="section">
-
-        <div class="section-heading">
-
-            <div>
-
-                <span class="section-kicker">
-                    COMMUNITY
-                </span>
+                </div>
 
 
-                <h2>
-                    What people<br>
-                    are teaching.
-                </h2>
-
-            </div>
+                <h1>
+                    Grow what<br>
+                    <span>you know.</span>
+                </h1>
 
 
-            <div class="section-description">
-
-                <p>
-                    Not courses. Not advertisements.
-                    Just people sharing something they
-                    actually know.
+                <p class="hero-description">
+                    SkillTree is a place to share what you know,
+                    learn from real people, and build a living map
+                    of the skills you are growing.
                 </p>
 
-            </div>
 
-        </div>
+                <div class="hero-actions">
 
+                    <button
+                        class="primary-button"
+                        id="heroCreateButton"
+                        type="button"
+                    >
+                        Teach something
 
+                        <span
+                            class="button-arrow"
+                            aria-hidden="true"
+                        >
+                            →
+                        </span>
 
-        <div
-            class="post-grid"
-            id="postGrid"
-        ></div>
+                    </button>
 
-    </div>
 
-</section>
+                    <a
+                        class="secondary-button"
+                        href="#discover"
+                    >
+                        Explore skills
+                    </a>
 
+                </div>
 
 
-<!-- =========================================================
-     MY TREE
-========================================================= -->
+                <div class="hero-stats">
 
-<section
-    class="tree-section"
-    id="tree"
->
+                    <div class="stat">
+                        <strong id="heroPostCount">0</strong>
+                        <span>SKILLS SHARED</span>
+                    </div>
 
-    <div class="tree-section-content">
+                    <div
+                        class="stat-divider"
+                        aria-hidden="true"
+                    ></div>
 
-        <span class="section-kicker">
-            MY TREE
-        </span>
+                    <div class="stat">
+                        <strong id="heroTeacherCount">0</strong>
+                        <span>TEACHERS</span>
+                    </div>
 
+                    <div
+                        class="stat-divider"
+                        aria-hidden="true"
+                    ></div>
 
-        <h2>
-            Your knowledge<br>
-            isn't a list.
-        </h2>
-
-
-        <p>
-            Every skill you share becomes a node
-            in your personal tree. Keep learning,
-            keep teaching, and watch it grow.
-        </p>
-
-
-        <button
-            class="primary-button"
-            id="treeButton"
-        >
-
-            <span>
-                View my tree
-            </span>
-
-            <span class="button-arrow">
-                ↗
-            </span>
-
-        </button>
-
-    </div>
-
-
-
-    <!-- TREE VISUAL -->
-
-    <div
-        class="large-tree"
-        id="largeTree"
-    >
-
-        <div class="large-line l1"></div>
-        <div class="large-line l2"></div>
-        <div class="large-line l3"></div>
-        <div class="large-line l4"></div>
-        <div class="large-line l5"></div>
-
-
-        <div class="large-center">
-            <span></span>
-        </div>
-
-    </div>
-
-</section>
-
-
-
-<!-- =========================================================
-     CTA
-========================================================= -->
-
-<section class="cta-section">
-
-    <div class="cta-inner">
-
-        <span class="section-kicker">
-            SHARE WHAT YOU KNOW
-        </span>
-
-
-        <h2>
-            You know something<br>
-            worth teaching.
-        </h2>
-
-
-        <p>
-            Give your skill a name.
-            Teach it your way.
-            Let someone learn from you.
-        </p>
-
-
-        <button
-            class="primary-button light-button"
-            id="ctaTeachButton"
-        >
-
-            <span>
-                Share your skill
-            </span>
-
-            <span class="button-arrow">
-                ↗
-            </span>
-
-        </button>
-
-    </div>
-
-</section>
-
-</main>
-
-
-
-<!-- =========================================================
-     CREATE POST MODAL
-========================================================= -->
-
-<div
-    class="modal-overlay"
-    id="modalOverlay"
->
-
-    <div class="modal">
-
-        <button
-            class="modal-close"
-            id="modalClose"
-            aria-label="Close"
-        >
-            ×
-        </button>
-
-
-        <div class="modal-header">
-
-            <span class="section-kicker">
-                CREATE
-            </span>
-
-
-            <h2>
-                Teach something.
-            </h2>
-
-
-            <p>
-                You decide what your skill is called.
-                Then actually teach it.
-            </p>
-
-        </div>
-
-
-        <form id="postForm">
-
-
-            <!-- SKILL NAME -->
-
-            <div class="form-group">
-
-                <label for="skillName">
-                    Name your skill
-                </label>
-
-
-                <input
-                    id="skillName"
-                    type="text"
-                    placeholder="How I make cinematic Minecraft builds"
-                    maxlength="100"
-                    required
-                >
-
-            </div>
-
-
-
-            <!-- CONTENT -->
-
-            <div class="form-group">
-
-                <label for="skillContent">
-                    Teach it
-                </label>
-
-
-                <textarea
-                    id="skillContent"
-                    placeholder="Explain what you know. Give people the actual knowledge they came here to learn..."
-                    maxlength="3000"
-                    required
-                ></textarea>
-
-
-                <div class="character-count">
-
-                    <span id="characterCount">
-                        0
-                    </span>
-
-                    / 3000
+                    <div class="stat">
+                        <strong id="heroSkillCount">0</strong>
+                        <span>SKILLS GROWING</span>
+                    </div>
 
                 </div>
 
             </div>
 
 
+            <!-- HERO TREE -->
 
-            <!-- IMAGE -->
+            <div
+                class="hero-tree"
+                aria-hidden="true"
+            >
 
-            <div class="form-group">
+                <div class="tree-glow"></div>
 
-                <label>
-                    Add an image
+                <div class="tree-line line-a"></div>
+                <div class="tree-line line-b"></div>
+                <div class="tree-line line-c"></div>
+                <div class="tree-line line-d"></div>
 
-                    <span class="optional">
-                        optional
+
+                <div class="tree-node node-main">
+                    <span></span>
+                </div>
+
+                <div class="tree-node node-one">
+                    <span></span>
+                </div>
+
+                <div class="tree-node node-two">
+                    <span></span>
+                </div>
+
+                <div class="tree-node node-three">
+                    <span></span>
+                </div>
+
+                <div class="tree-node node-four">
+                    <span></span>
+                </div>
+
+
+                <div class="tree-label">
+
+                    <small>YOUR</small>
+                    <strong>SkillTree</strong>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             DISCOVER
+        ================================================== -->
+
+        <section
+            class="section"
+            id="discover"
+        >
+
+            <div class="section-heading">
+
+                <div>
+
+                    <span class="section-kicker">
+                        DISCOVER
                     </span>
-                </label>
+
+                    <h2>
+                        Learn from<br>
+                        people.
+                    </h2>
+
+                </div>
 
 
-                <label
-                    class="upload-box"
-                    for="imageInput"
+                <div class="section-description">
+
+                    <p>
+                        Explore skills people are sharing right now.
+                        Every skill starts with the person who knows it.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- SEARCH -->
+
+            <div class="search-container">
+
+                <svg
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                >
+                    <circle
+                        cx="11"
+                        cy="11"
+                        r="7"
+                    ></circle>
+
+                    <path
+                        d="m20 20-4-4"
+                    ></path>
+                </svg>
+
+
+                <input
+                    id="searchInput"
+                    type="search"
+                    placeholder="Search skills, people, or posts..."
+                    autocomplete="off"
+                    aria-label="Search skills and people"
                 >
 
-                    <input
-                        type="file"
-                        id="imageInput"
-                        accept="image/png,image/jpeg,image/webp"
-                        hidden
+
+                <kbd>
+                    /
+                </kbd>
+
+            </div>
+
+
+            <!-- TOOLBAR -->
+
+            <div class="discover-toolbar">
+
+                <span
+                    class="results-label"
+                    id="resultsLabel"
+                >
+                    Loading skills...
+                </span>
+
+
+                <div class="sort-buttons">
+
+                    <button
+                        class="sort-button active"
+                        type="button"
+                        data-sort="recent"
                     >
+                        Recent
+                    </button>
 
-
-                    <div
-                        class="upload-content"
-                        id="uploadContent"
+                    <button
+                        class="sort-button"
+                        type="button"
+                        data-sort="skill"
                     >
+                        Skill
+                    </button>
 
-                        <div class="upload-icon">
-                            +
-                        </div>
+                    <button
+                        class="sort-button"
+                        type="button"
+                        data-sort="teacher"
+                    >
+                        Teacher
+                    </button>
+
+                </div>
+
+            </div>
 
 
-                        <strong>
-                            Add something visual
-                        </strong>
+            <!-- TEACHER / SKILL GRID -->
+
+            <div
+                class="teacher-grid"
+                id="teacherGrid"
+            >
+
+                <div class="empty-state">
+
+                    <h3>
+                        Loading the tree...
+                    </h3>
+
+                    <p>
+                        Finding people who are teaching.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
 
 
-                        <span>
-                            PNG, JPG or WEBP
+        <!-- =================================================
+             COMMUNITY
+        ================================================== -->
+
+        <section class="community-section">
+
+            <div class="section">
+
+                <div class="section-heading">
+
+                    <div>
+
+                        <span class="section-kicker">
+                            COMMUNITY
                         </span>
+
+                        <h2>
+                            See what<br>
+                            people know.
+                        </h2>
 
                     </div>
 
 
-                    <img
-                        id="imagePreview"
-                        class="image-preview"
-                        alt="Uploaded image preview"
-                    >
+                    <div class="section-description">
 
-                </label>
+                        <p>
+                            Skills are more interesting when they
+                            come from actual people. Browse,
+                            discover, and learn.
+                        </p>
 
-            </div>
-
-
-
-            <!-- LIVE TEACHING -->
-
-            <div class="form-group">
-
-                <label>
-
-                    Teach live?
-
-                    <span class="optional">
-                        optional
-                    </span>
-
-                </label>
-
-
-                <p class="field-help">
-                    If you'd like, people can connect with
-                    you on Zoom or Google Meet.
-                </p>
-
-
-                <div class="live-options">
-
-                    <label class="live-option">
-
-                        <input
-                            type="radio"
-                            name="platform"
-                            value="none"
-                            checked
-                        >
-
-                        <span>
-                            No live session
-                        </span>
-
-                    </label>
-
-
-                    <label class="live-option">
-
-                        <input
-                            type="radio"
-                            name="platform"
-                            value="zoom"
-                        >
-
-                        <span>
-                            Zoom
-                        </span>
-
-                    </label>
-
-
-                    <label class="live-option">
-
-                        <input
-                            type="radio"
-                            name="platform"
-                            value="meet"
-                        >
-
-                        <span>
-                            Google Meet
-                        </span>
-
-                    </label>
+                    </div>
 
                 </div>
 
 
-                <input
-                    id="meetingLink"
-                    class="meeting-link"
-                    type="url"
-                    placeholder="Paste your meeting link..."
+                <div
+                    class="post-grid"
+                    id="postGrid"
                 >
+
+                    <div class="empty-state">
+
+                        <h3>
+                            Loading posts...
+                        </h3>
+
+                        <p>
+                            The community is waking up.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             MY TREE
+        ================================================== -->
+
+        <section
+            class="tree-section"
+            id="tree"
+        >
+
+            <div class="tree-section-content">
+
+                <span class="section-kicker">
+                    MY TREE
+                </span>
+
+                <h2>
+                    Everything<br>
+                    you know.
+                </h2>
+
+                <p>
+                    Every skill you teach becomes part of your
+                    personal tree. There are no predefined paths.
+                    Your tree grows around the things you choose
+                    to learn and share.
+                </p>
+
+
+                <button
+                    class="primary-button"
+                    id="treeTeachButton"
+                    type="button"
+                >
+                    Add a skill
+
+                    <span
+                        class="button-arrow"
+                        aria-hidden="true"
+                    >
+                        +
+                    </span>
+
+                </button>
 
             </div>
 
 
+            <!-- LARGE TREE -->
 
-            <!-- SUBMIT -->
-
-            <button
-                class="primary-button submit-button"
-                type="submit"
+            <div
+                class="large-tree"
+                id="largeTree"
             >
 
-                <span>
-                    Publish skill
+                <div class="tree-glow"></div>
+
+
+                <div class="large-line l1"></div>
+                <div class="large-line l2"></div>
+                <div class="large-line l3"></div>
+                <div class="large-line l4"></div>
+                <div class="large-line l5"></div>
+
+
+                <div class="large-center">
+                    <span></span>
+                </div>
+
+
+                <div
+                    class="large-node"
+                    data-tree-slot="0"
+                    style="left: 16%; top: 20%;"
+                ></div>
+
+                <div
+                    class="large-node"
+                    data-tree-slot="1"
+                    style="right: 15%; top: 25%;"
+                ></div>
+
+                <div
+                    class="large-node"
+                    data-tree-slot="2"
+                    style="left: 14%; bottom: 22%;"
+                ></div>
+
+                <div
+                    class="large-node"
+                    data-tree-slot="3"
+                    style="right: 14%; bottom: 20%;"
+                ></div>
+
+                <div
+                    class="large-node"
+                    data-tree-slot="4"
+                    style="left: calc(50% - 13px); bottom: 9%;"
+                ></div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             CTA
+        ================================================== -->
+
+        <section class="cta-section">
+
+            <div class="cta-inner">
+
+                <span class="section-kicker">
+                    YOUR TURN
                 </span>
 
-                <span class="button-arrow">
-                    ↗
-                </span>
+                <h2>
+                    Everyone knows<br>
+                    something.
+                </h2>
 
+                <p>
+                    You probably know something someone else
+                    wants to learn. Put it on the tree.
+                </p>
+
+
+                <button
+                    class="primary-button light-button"
+                    id="ctaCreateButton"
+                    type="button"
+                >
+                    Teach a skill
+
+                    <span
+                        class="button-arrow"
+                        aria-hidden="true"
+                    >
+                        →
+                    </span>
+
+                </button>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- =====================================================
+         CREATE POST MODAL
+    ====================================================== -->
+
+    <div
+        class="modal-overlay"
+        id="createModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="createModalTitle"
+    >
+
+        <div class="modal">
+
+            <button
+                class="modal-close"
+                type="button"
+                data-close-modal="createModal"
+                aria-label="Close"
+            >
+                ×
             </button>
 
-        </form>
 
-    </div>
+            <div class="modal-header">
 
-</div>
+                <h2 id="createModalTitle">
+                    Teach something.
+                </h2>
 
-
-
-<!-- =========================================================
-     PROFILE MODAL
-========================================================= -->
-
-<div
-    class="modal-overlay"
-    id="profileModal"
->
-
-    <div class="modal small-modal">
-
-        <button
-            class="modal-close"
-            id="profileModalClose"
-        >
-            ×
-        </button>
-
-
-        <div class="modal-header">
-
-            <span class="section-kicker">
-                PROFILE
-            </span>
-
-
-            <h2>
-                Your SkillTree identity.
-            </h2>
-
-
-            <p>
-                This is saved locally in your browser
-                for this prototype.
-            </p>
-
-        </div>
-
-
-        <form id="profileForm">
-
-            <div class="form-group">
-
-                <label for="displayName">
-                    Display name
-                </label>
-
-
-                <input
-                    id="displayName"
-                    type="text"
-                    placeholder="Alex"
-                    maxlength="40"
-                    required
-                >
+                <p>
+                    Give your skill a name, show people what
+                    you're sharing, and let it grow into your tree.
+                </p>
 
             </div>
 
 
-            <div class="form-group">
+            <form id="createPostForm">
 
-                <label for="username">
-                    Username
-                </label>
+                <!-- USERNAME -->
+
+                <div class="form-group">
+
+                    <label for="authorName">
+                        Your name
+                    </label>
+
+                    <div class="username-input">
+
+                        <span>
+                            @
+                        </span>
+
+                        <input
+                            id="authorName"
+                            type="text"
+                            maxlength="100"
+                            placeholder="your name"
+                            autocomplete="name"
+                            required
+                        >
+
+                    </div>
+
+                </div>
 
 
-                <div class="username-input">
+                <!-- SKILL -->
 
-                    <span>@</span>
+                <div class="form-group">
+
+                    <label for="skillInput">
+                        Skill
+                    </label>
 
                     <input
-                        id="username"
+                        id="skillInput"
                         type="text"
-                        placeholder="alexbuilds"
-                        maxlength="30"
+                        maxlength="200"
+                        placeholder="What are you teaching?"
+                        autocomplete="off"
                         required
                     >
 
                 </div>
 
+
+                <!-- DESCRIPTION -->
+
+                <div class="form-group">
+
+                    <label for="descriptionInput">
+                        Description
+                    </label>
+
+                    <textarea
+                        id="descriptionInput"
+                        maxlength="2000"
+                        placeholder="Tell people what they'll learn..."
+                        required
+                    ></textarea>
+
+
+                    <span
+                        class="character-count"
+                        id="characterCount"
+                    >
+                        0 / 2000
+                    </span>
+
+                </div>
+
+
+                <!-- IMAGE -->
+
+                <div class="form-group">
+
+                    <label>
+                        Show it
+                        <span class="optional">
+                            optional
+                        </span>
+                    </label>
+
+
+                    <div
+                        class="upload-box"
+                        id="uploadBox"
+                        tabindex="0"
+                        role="button"
+                        aria-label="Upload an image"
+                    >
+
+                        <input
+                            id="imageInput"
+                            type="file"
+                            accept="image/*"
+                            hidden
+                        >
+
+
+                        <div class="upload-content">
+
+                            <div
+                                class="upload-icon"
+                                aria-hidden="true"
+                            >
+                                ↑
+                            </div>
+
+                            <strong>
+                                Add a picture
+                            </strong>
+
+                            <span>
+                                PNG, JPG, WEBP · max 5 MB
+                            </span>
+
+                        </div>
+
+
+                        <img
+                            class="image-preview"
+                            id="imagePreview"
+                            src=""
+                            alt="Selected image preview"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- LIVE TEACHING -->
+
+                <div class="form-group">
+
+                    <label>
+                        Live teaching
+                        <span class="optional">
+                            optional
+                        </span>
+                    </label>
+
+
+                    <p class="field-help">
+                        You can attach a live meeting link if you
+                        want to teach this skill in real time.
+                    </p>
+
+
+                    <div class="live-options">
+
+                        <label class="live-option">
+
+                            <input
+                                type="radio"
+                                name="liveOption"
+                                value="none"
+                                checked
+                            >
+
+                            <span>
+                                No live session
+                            </span>
+
+                        </label>
+
+
+                        <label class="live-option">
+
+                            <input
+                                type="radio"
+                                name="liveOption"
+                                value="meeting"
+                            >
+
+                            <span>
+                                Add meeting
+                            </span>
+
+                        </label>
+
+                    </div>
+
+
+                    <div
+                        class="meeting-link"
+                        id="meetingLink"
+                    >
+
+                        <input
+                            id="meetingUrl"
+                            type="url"
+                            placeholder="https://meet.google.com/..."
+                            autocomplete="url"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- SUBMIT -->
+
+                <button
+                    class="primary-button"
+                    id="submitPostButton"
+                    type="submit"
+                    style="width: 100%;"
+                >
+
+                    Publish skill
+
+                    <span
+                        class="button-arrow"
+                        aria-hidden="true"
+                    >
+                        →
+                    </span>
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         POST DETAIL MODAL
+    ====================================================== -->
+
+    <div
+        class="modal-overlay"
+        id="detailModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="detailTitle"
+    >
+
+        <div class="post-detail-modal">
+
+            <button
+                class="modal-close"
+                type="button"
+                data-close-modal="detailModal"
+                aria-label="Close"
+            >
+                ×
+            </button>
+
+
+            <img
+                class="post-detail-image"
+                id="detailImage"
+                src=""
+                alt=""
+                hidden
+            >
+
+
+            <div class="post-detail-content">
+
+                <h2 id="detailTitle">
+                    Skill
+                </h2>
+
+
+                <div
+                    class="detail-author"
+                    id="detailAuthor"
+                >
+                    by You
+                </div>
+
+
+                <div
+                    class="detail-text"
+                    id="detailText"
+                ></div>
+
+
+                <div
+                    class="detail-live"
+                    id="detailLive"
+                    hidden
+                >
+
+                    <strong>
+                        LIVE TEACHING
+                    </strong>
+
+                    <a
+                        id="detailMeetingLink"
+                        href="#"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        Join session
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         PROFILE MODAL
+    ====================================================== -->
+
+    <div
+        class="modal-overlay"
+        id="profileModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="profileModalTitle"
+    >
+
+        <div class="modal">
+
+            <button
+                class="modal-close"
+                type="button"
+                data-close-modal="profileModal"
+                aria-label="Close"
+            >
+                ×
+            </button>
+
+
+            <div class="modal-header">
+
+                <h2 id="profileModalTitle">
+                    Your profile.
+                </h2>
+
+                <p>
+                    This name appears on the skills you share.
+                </p>
+
             </div>
 
 
-            <button
-                class="primary-button submit-button"
-                type="submit"
-            >
+            <form id="profileForm">
 
-                <span>
+                <div class="form-group">
+
+                    <label for="profileNameInput">
+                        Display name
+                    </label>
+
+                    <div class="username-input">
+
+                        <span>
+                            @
+                        </span>
+
+                        <input
+                            id="profileNameInput"
+                            type="text"
+                            maxlength="100"
+                            placeholder="Your name"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    class="primary-button"
+                    type="submit"
+                    style="width: 100%;"
+                >
+
                     Save profile
-                </span>
 
-                <span class="button-arrow">
-                    ↗
-                </span>
+                    <span
+                        class="button-arrow"
+                        aria-hidden="true"
+                    >
+                        ✓
+                    </span>
 
-            </button>
+                </button>
 
-        </form>
+            </form>
+
+        </div>
 
     </div>
 
-</div>
 
+    <!-- =====================================================
+         TOAST
+    ====================================================== -->
 
+    <div
+        class="toast"
+        id="toast"
+        role="status"
+        aria-live="polite"
+    >
 
-<!-- =========================================================
-     POST DETAIL MODAL
-========================================================= -->
-
-<div
-    class="modal-overlay"
-    id="postModal"
->
-
-    <div class="post-detail-modal">
-
-        <button
-            class="modal-close"
-            id="postModalClose"
+        <span
+            class="toast-icon"
+            id="toastIcon"
         >
-            ×
-        </button>
-
-
-        <div id="postDetailContent"></div>
-
-    </div>
-
-</div>
-
-
-
-<!-- =========================================================
-     TOAST
-========================================================= -->
-
-<div
-    class="toast"
-    id="toast"
->
-
-    <span class="toast-icon">
-        ✓
-    </span>
-
-    <span id="toastMessage">
-        Done
-    </span>
-
-</div>
-
-
-
-<!-- =========================================================
-     FOOTER
-========================================================= -->
-
-<footer>
-
-    <div class="footer-logo">
-
-        <span class="logo-mark">
-            <span></span>
-            <span></span>
-            <span></span>
+            ✓
         </span>
 
-        SkillTree
+        <span id="toastMessage">
+            Done.
+        </span>
 
     </div>
 
 
-    <span>
-        Knowledge grows when it's shared.
-    </span>
+    <!-- =====================================================
+         FOOTER
+    ====================================================== -->
+
+    <footer>
+
+        <div class="footer-logo">
+
+            <span
+                class="logo-mark"
+                aria-hidden="true"
+            >
+                <span></span>
+                <span></span>
+                <span></span>
+            </span>
+
+            SkillTree
+
+        </div>
 
 
-    <span>
-        © 2026 SkillTree
-    </span>
+        <span>
+            Learn something. Teach something. Grow something.
+        </span>
 
-</footer>
+    </footer>
 
 
-<script src="script.js"></script>
+    <!-- =====================================================
+         JAVASCRIPT
+    ====================================================== -->
+
+    <script src="script.js" defer></script>
 
 </body>
 </html>

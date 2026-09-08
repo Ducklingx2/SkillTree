@@ -10,14 +10,23 @@
    CONFIG
 ========================================================= */
 
-const API_URL = "https://skilltree-9quj.onrender.com";
+const SUPABASE_URL =
+    "https://bdhthcfovlgpmliohgnt.supabase.co";
 
-const POSTS_ENDPOINT = `${API_URL}/api/posts`;
+const SUPABASE_PUBLISHABLE_KEY =
+    "sb_publishable_TlzA00mjS3PVBIfBnXFpsg_Zq_9QwvX";
 
-const STORAGE_KEYS = {
-    uid: "skilltree_uid",
-    name: "skilltree_name"
-};
+const supabase =
+    window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_PUBLISHABLE_KEY
+    );
+
+const API_URL =
+    "https://skilltree-9quj.onrender.com";
+
+const POSTS_ENDPOINT =
+    `${API_URL}/api/posts`;
 
 
 /* =========================================================
@@ -25,15 +34,28 @@ const STORAGE_KEYS = {
 ========================================================= */
 
 const state = {
+
     posts: [],
+
     filteredPosts: [],
+
     sort: "recent",
+
     search: "",
+
     loading: false,
+
     submitting: false,
+
     selectedImage: "",
+
     activePost: null,
-    toastTimer: null
+
+    toastTimer: null,
+
+    session: null,
+
+    user: null
 };
 
 
@@ -42,7 +64,9 @@ const state = {
 ========================================================= */
 
 const dom = {
-    navLinks: document.querySelectorAll(".nav-links a"),
+
+    navLinks:
+        document.querySelectorAll(".nav-links a"),
 
     heroCreateButton:
         document.getElementById("heroCreateButton"),
@@ -176,12 +200,13 @@ const dom = {
    INITIALIZATION
 ========================================================= */
 
-document.addEventListener("DOMContentLoaded", initialize);
+document.addEventListener(
+    "DOMContentLoaded",
+    initialize
+);
 
 
 async function initialize() {
-
-    initializeIdentity();
 
     bindNavigation();
 
@@ -205,9 +230,18 @@ async function initialize() {
 
     bindKeyboardShortcuts();
 
-    updateProfileUI();
-
     renderInitialTree();
+
+    /*
+        Start Supabase authentication.
+
+        Supabase automatically restores the persisted
+        session when the client initializes.
+    */
+
+    await initializeAuth();
+
+    updateProfileUI();
 
     await loadPosts();
 
@@ -216,100 +250,431 @@ async function initialize() {
 
 
 /* =========================================================
-   IDENTITY
+   SUPABASE AUTH
 ========================================================= */
 
-function initializeIdentity() {
+async function initializeAuth() {
 
-    let uid = localStorage.getItem(STORAGE_KEYS.uid);
+    const {
+        data: { session },
+        error
+    } = await supabase.auth.getSession();
 
-    if (!uid) {
+    if (error) {
 
-        uid = createUID();
-
-        localStorage.setItem(
-            STORAGE_KEYS.uid,
-            uid
+        console.error(
+            "Failed to restore Supabase session:",
+            error
         );
+
+        state.session = null;
+        state.user = null;
+
+    } else {
+
+        state.session = session;
+        state.user = session?.user || null;
     }
 
 
-    let name = localStorage.getItem(STORAGE_KEYS.name);
-
-    if (!name) {
-
-        name = "You";
-
-        localStorage.setItem(
-            STORAGE_KEYS.name,
-            name
-        );
-    }
-}
+    updateAuthUI();
 
 
-function createUID() {
+    /*
+        Listen for:
 
-    if (
-        window.crypto &&
-        typeof window.crypto.randomUUID === "function"
-    ) {
-        return window.crypto.randomUUID();
-    }
+        SIGNED_IN
+        SIGNED_OUT
+        TOKEN_REFRESHED
+        USER_UPDATED
+        INITIAL_SESSION
+    */
 
+    supabase.auth.onAuthStateChange(
+        (_event, session) => {
 
-    return (
-        "user-" +
-        Date.now().toString(36) +
-        "-" +
-        Math.random().toString(36).slice(2, 10)
+            state.session =
+                session;
+
+            state.user =
+                session?.user || null;
+
+            updateAuthUI();
+
+            updateProfileUI();
+
+            renderUserTree();
+        }
     );
 }
 
 
-function getUID() {
+/* =========================================================
+   AUTH UI
+========================================================= */
 
-    let uid =
-        localStorage.getItem(STORAGE_KEYS.uid);
+function updateAuthUI() {
 
-    if (!uid) {
+    /*
+        Your current HTML does not appear to have
+        dedicated login buttons yet.
 
-        uid = createUID();
+        This function is deliberately defensive so
+        nothing breaks if those elements don't exist.
+    */
 
-        localStorage.setItem(
-            STORAGE_KEYS.uid,
-            uid
+    const loggedIn =
+        Boolean(state.user);
+
+
+    const authButtons =
+        document.querySelectorAll(
+            "[data-auth-required]"
         );
-    }
 
-    return uid;
+
+    authButtons.forEach(element => {
+
+        element.hidden =
+            !loggedIn;
+    });
+
+
+    const guestElements =
+        document.querySelectorAll(
+            "[data-auth-guest]"
+        );
+
+
+    guestElements.forEach(element => {
+
+        element.hidden =
+            loggedIn;
+    });
 }
 
 
+/* =========================================================
+   SIGN UP
+========================================================= */
+
+async function signUp(
+    email,
+    password,
+    username
+) {
+
+    email =
+        email.trim();
+
+    username =
+        username.trim()
+            .slice(0, 100);
+
+
+    if (!email) {
+        throw new Error(
+            "Enter your email."
+        );
+    }
+
+
+    if (!password) {
+        throw new Error(
+            "Enter a password."
+        );
+    }
+
+
+    if (password.length < 6) {
+        throw new Error(
+            "Password must be at least 6 characters."
+        );
+    }
+
+
+    if (!username) {
+        throw new Error(
+            "Enter a username."
+        );
+    }
+
+
+    const {
+        data,
+        error
+    } =
+        await supabase.auth.signUp({
+
+            email,
+
+            password,
+
+            options: {
+
+                data: {
+                    username
+                }
+            }
+        });
+
+
+    if (error) {
+        throw new Error(
+            error.message
+        );
+    }
+
+
+    /*
+        If email confirmation is enabled,
+        data.session may be null.
+
+        If confirmation is disabled,
+        the user is immediately signed in.
+    */
+
+    if (data.session) {
+
+        state.session =
+            data.session;
+
+        state.user =
+            data.user;
+
+        updateProfileUI();
+
+        updateAuthUI();
+
+    } else {
+
+        showToast(
+            "Check your email to confirm your account.",
+            "✉"
+        );
+    }
+
+
+    return data;
+}
+
+
+/* =========================================================
+   SIGN IN
+========================================================= */
+
+async function signIn(
+    email,
+    password
+) {
+
+    const {
+        data,
+        error
+    } =
+        await supabase.auth.signInWithPassword({
+
+            email:
+                email.trim(),
+
+            password
+        });
+
+
+    if (error) {
+
+        throw new Error(
+            error.message
+        );
+    }
+
+
+    state.session =
+        data.session;
+
+    state.user =
+        data.user;
+
+
+    updateAuthUI();
+
+    updateProfileUI();
+
+    await loadPosts();
+
+    renderUserTree();
+
+
+    return data;
+}
+
+
+/* =========================================================
+   SIGN OUT
+========================================================= */
+
+async function signOut() {
+
+    const {
+        error
+    } =
+        await supabase.auth.signOut();
+
+
+    if (error) {
+
+        throw new Error(
+            error.message
+        );
+    }
+
+
+    state.session = null;
+
+    state.user = null;
+
+
+    updateAuthUI();
+
+    updateProfileUI();
+
+    renderUserTree();
+
+
+    showToast(
+        "Signed out.",
+        "✓"
+    );
+}
+
+
+/* =========================================================
+   CURRENT USER
+========================================================= */
+
+async function getCurrentUser() {
+
+    const {
+        data: { user },
+        error
+    } =
+        await supabase.auth.getUser();
+
+
+    if (error) {
+
+        return null;
+    }
+
+
+    state.user =
+        user;
+
+
+    return user;
+}
+
+
+/* =========================================================
+   USERNAME
+========================================================= */
+
 function getUserName() {
 
+    if (!state.user) {
+
+        return "You";
+    }
+
+
     return (
-        localStorage.getItem(STORAGE_KEYS.name) ||
+        state.user.user_metadata?.username ||
+        state.user.email?.split("@")[0] ||
         "You"
     );
 }
 
 
-function setUserName(name) {
+async function setUserName(name) {
 
     const cleanName =
-        name.trim().slice(0, 100);
+        name
+            .trim()
+            .slice(0, 100);
+
 
     if (!cleanName) {
-        return;
+
+        throw new Error(
+            "Username cannot be empty."
+        );
     }
 
-    localStorage.setItem(
-        STORAGE_KEYS.name,
-        cleanName
-    );
+
+    if (!state.user) {
+
+        throw new Error(
+            "You must be signed in."
+        );
+    }
+
+
+    const {
+        data,
+        error
+    } =
+        await supabase.auth.updateUser({
+
+            data: {
+                username: cleanName
+            }
+        });
+
+
+    if (error) {
+
+        throw new Error(
+            error.message
+        );
+    }
+
+
+    state.user =
+        data.user;
+
 
     updateProfileUI();
+
+
+    /*
+        Re-render posts locally so any posts
+        belonging to this user can update.
+    */
+
+    state.posts =
+        state.posts.map(post => {
+
+            if (
+                post.userId ===
+                state.user.id
+            ) {
+
+                return {
+                    ...post,
+                    authorName:
+                        cleanName
+                };
+            }
+
+            return post;
+        });
+
+
+    applyFilters();
+
+    updateStats();
+
+    renderUserTree();
 }
 
 
@@ -319,29 +684,39 @@ function setUserName(name) {
 
 function updateProfileUI() {
 
-    const name = getUserName();
+    const name =
+        getUserName();
+
 
     const initials =
         getInitials(name);
 
 
     if (dom.navProfileName) {
-        dom.navProfileName.textContent = name;
+
+        dom.navProfileName.textContent =
+            name;
     }
 
 
     if (dom.navAvatar) {
-        dom.navAvatar.textContent = initials;
+
+        dom.navAvatar.textContent =
+            initials;
     }
 
 
     if (dom.authorName) {
-        dom.authorName.value = name;
+
+        dom.authorName.value =
+            name;
     }
 
 
     if (dom.profileNameInput) {
-        dom.profileNameInput.value = name;
+
+        dom.profileNameInput.value =
+            name;
     }
 }
 
@@ -356,206 +731,97 @@ function getInitials(name) {
 
 
     if (!words.length) {
+
         return "Y";
     }
 
 
     if (words.length === 1) {
-        return words[0].slice(0, 1).toUpperCase();
+
+        return words[0]
+            .slice(0, 1)
+            .toUpperCase();
     }
 
 
     return (
         words[0].slice(0, 1) +
-        words[words.length - 1].slice(0, 1)
+        words[words.length - 1]
+            .slice(0, 1)
     ).toUpperCase();
 }
 
 
 /* =========================================================
-   NAVIGATION
+   AUTHENTICATED API REQUEST
 ========================================================= */
 
-function bindNavigation() {
+async function authenticatedFetch(
+    url,
+    options = {}
+) {
 
-    dom.navLinks.forEach(link => {
+    /*
+        getSession() is fine here because we need
+        the access token to send to our own backend.
 
-        link.addEventListener("click", event => {
+        The Go backend independently verifies the token.
+    */
 
-            const href =
-                link.getAttribute("href");
-
-
-            if (!href || !href.startsWith("#")) {
-                return;
-            }
-
-
-            event.preventDefault();
-
-
-            const target =
-                document.querySelector(href);
+    const {
+        data: { session },
+        error
+    } =
+        await supabase.auth.getSession();
 
 
-            if (!target) {
-                return;
-            }
+    if (error) {
 
-
-            target.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
-        });
-    });
-}
-
-
-function setupScrollNavigation() {
-
-    const sections = [
-        document.getElementById("home"),
-        document.getElementById("discover"),
-        document.getElementById("tree")
-    ];
-
-
-    if (!("IntersectionObserver" in window)) {
-        return;
+        throw new Error(
+            error.message
+        );
     }
 
 
-    const observer =
-        new IntersectionObserver(
-            entries => {
+    if (!session) {
 
-                entries.forEach(entry => {
-
-                    if (!entry.isIntersecting) {
-                        return;
-                    }
+        throw new Error(
+            "You must be signed in."
+        );
+    }
 
 
-                    const id =
-                        entry.target.id;
-
-
-                    dom.navLinks.forEach(link => {
-
-                        link.classList.toggle(
-                            "active",
-                            link.dataset.nav === id
-                        );
-                    });
-                });
-
-            },
-            {
-                threshold: 0.35
-            }
+    const headers =
+        new Headers(
+            options.headers || {}
         );
 
 
-    sections
-        .filter(Boolean)
-        .forEach(section => observer.observe(section));
-}
-
-
-/* =========================================================
-   BUTTONS
-========================================================= */
-
-function bindButtons() {
-
-    [
-        dom.heroCreateButton,
-        dom.treeTeachButton,
-        dom.ctaCreateButton
-    ]
-        .filter(Boolean)
-        .forEach(button => {
-
-            button.addEventListener(
-                "click",
-                () => openCreateModal()
-            );
-        });
-
-
-    dom.profileButton?.addEventListener(
-        "click",
-        openProfileModal
+    headers.set(
+        "Authorization",
+        `Bearer ${session.access_token}`
     );
 
 
-    dom.notificationButton?.addEventListener(
-        "click",
-        () => {
+    if (
+        options.body &&
+        !headers.has("Content-Type")
+    ) {
 
-            showToast(
-                "You're all caught up.",
-                "✓"
-            );
-
-            if (dom.notificationDot) {
-                dom.notificationDot.hidden = true;
-            }
-        }
-    );
-}
-
-
-/* =========================================================
-   SEARCH
-========================================================= */
-
-function bindSearch() {
-
-    dom.searchInput?.addEventListener(
-        "input",
-        event => {
-
-            state.search =
-                event.target.value.trim().toLowerCase();
-
-            applyFilters();
-        }
-    );
-}
-
-
-/* =========================================================
-   SORTING
-========================================================= */
-
-function bindSorting() {
-
-    dom.sortButtons.forEach(button => {
-
-        button.addEventListener(
-            "click",
-            () => {
-
-                state.sort =
-                    button.dataset.sort || "recent";
-
-
-                dom.sortButtons.forEach(
-                    item => {
-                        item.classList.toggle(
-                            "active",
-                            item === button
-                        );
-                    }
-                );
-
-
-                applyFilters();
-            }
+        headers.set(
+            "Content-Type",
+            "application/json"
         );
-    });
+    }
+
+
+    return fetch(
+        url,
+        {
+            ...options,
+            headers
+        }
+    );
 }
 
 
@@ -571,12 +837,17 @@ async function loadPosts() {
     try {
 
         const response =
-            await fetch(POSTS_ENDPOINT, {
-                method: "GET",
-                headers: {
-                    "Accept": "application/json"
+            await fetch(
+                POSTS_ENDPOINT,
+                {
+                    method: "GET",
+
+                    headers: {
+                        "Accept":
+                            "application/json"
+                    }
                 }
-            });
+            );
 
 
         if (!response.ok) {
@@ -606,7 +877,8 @@ async function loadPosts() {
 
         if (state.posts.length) {
 
-            dom.notificationDot.hidden = true;
+            dom.notificationDot.hidden =
+                true;
         }
 
     } catch (error) {
@@ -618,6 +890,7 @@ async function loadPosts() {
 
 
         state.posts = [];
+
 
         renderEmptyFeed(
             "Could not load the community.",
@@ -653,11 +926,19 @@ async function loadPosts() {
 function normalizePost(post) {
 
     return {
-        id: post.id,
 
-        uid:
+        id:
+            post.id,
+
+        /*
+            NEW:
+            Supabase user's UUID
+        */
+
+        userId:
             String(
-                post.uid ??
+                post.userId ??
+                post.user_id ??
                 ""
             ),
 
@@ -703,882 +984,8 @@ function normalizePost(post) {
 
 
 /* =========================================================
-   FILTER + SORT
+   CREATE POST
 ========================================================= */
-
-function applyFilters() {
-
-    let posts =
-        [...state.posts];
-
-
-    if (state.search) {
-
-        posts =
-            posts.filter(post => {
-
-                const searchable =
-                    [
-                        post.skill,
-                        post.authorName,
-                        post.description
-                    ]
-                        .join(" ")
-                        .toLowerCase();
-
-
-                return searchable.includes(
-                    state.search
-                );
-            });
-    }
-
-
-    posts.sort(
-        getSortFunction(state.sort)
-    );
-
-
-    state.filteredPosts =
-        posts;
-
-
-    renderTeacherGrid(
-        state.filteredPosts
-    );
-
-
-    renderPostGrid(
-        state.filteredPosts
-    );
-
-
-    updateResultsLabel();
-}
-
-
-function getSortFunction(sort) {
-
-    if (sort === "skill") {
-
-        return (a, b) =>
-            a.skill.localeCompare(
-                b.skill
-            );
-    }
-
-
-    if (sort === "teacher") {
-
-        return (a, b) =>
-            a.authorName.localeCompare(
-                b.authorName
-            );
-    }
-
-
-    return (a, b) =>
-        new Date(b.createdAt) -
-        new Date(a.createdAt);
-}
-
-
-/* =========================================================
-   RESULTS LABEL
-========================================================= */
-
-function updateResultsLabel() {
-
-    if (!dom.resultsLabel) {
-        return;
-    }
-
-
-    const count =
-        state.filteredPosts.length;
-
-
-    if (!state.posts.length) {
-
-        dom.resultsLabel.textContent =
-            "No skills shared yet";
-
-        return;
-    }
-
-
-    if (state.search) {
-
-        dom.resultsLabel.textContent =
-            `${count} ${
-                count === 1
-                    ? "result"
-                    : "results"
-            }`;
-
-        return;
-    }
-
-
-    dom.resultsLabel.textContent =
-        `${count} ${
-            count === 1
-                ? "skill"
-                : "skills"
-        } shared`;
-}
-
-
-/* =========================================================
-   TEACHER GRID
-========================================================= */
-
-function renderTeacherGrid(posts) {
-
-    if (!dom.teacherGrid) {
-        return;
-    }
-
-
-    dom.teacherGrid.replaceChildren();
-
-
-    if (!posts.length) {
-
-        const empty =
-            createEmptyState(
-                state.search
-                    ? "Nothing found."
-                    : "No skills yet.",
-                state.search
-                    ? "Try another skill, person, or phrase."
-                    : "Be the first person to put something on the tree."
-            );
-
-
-        dom.teacherGrid.appendChild(
-            empty
-        );
-
-        return;
-    }
-
-
-    posts.forEach(post => {
-
-        dom.teacherGrid.appendChild(
-            createTeacherCard(post)
-        );
-    });
-}
-
-
-function createTeacherCard(post) {
-
-    const card =
-        document.createElement("article");
-
-    card.className =
-        "teacher-card";
-
-
-    card.dataset.postId =
-        String(post.id);
-
-
-    const image =
-        document.createElement("div");
-
-    image.className =
-        "teacher-image";
-
-
-    if (post.imageUrl) {
-
-        const img =
-            document.createElement("img");
-
-        img.src =
-            post.imageUrl;
-
-        img.alt =
-            `${post.skill} shared by ${post.authorName}`;
-
-        img.loading =
-            "lazy";
-
-        image.appendChild(img);
-
-    } else {
-
-        const placeholder =
-            document.createElement("div");
-
-        placeholder.className =
-            "image-placeholder";
-
-
-        const avatar =
-            document.createElement("div");
-
-        avatar.className =
-            "placeholder-avatar";
-
-        avatar.textContent =
-            getInitials(post.authorName);
-
-
-        placeholder.appendChild(
-            avatar
-        );
-
-        image.appendChild(
-            placeholder
-        );
-    }
-
-
-    const content =
-        document.createElement("div");
-
-    content.className =
-        "teacher-content";
-
-
-    const skill =
-        document.createElement("h3");
-
-    skill.className =
-        "skill-name";
-
-    skill.textContent =
-        post.skill;
-
-
-    const name =
-        document.createElement("div");
-
-    name.className =
-        "teacher-name";
-
-    name.textContent =
-        `by ${post.authorName}`;
-
-
-    const description =
-        document.createElement("p");
-
-    description.className =
-        "teacher-description";
-
-    description.textContent =
-        post.description;
-
-
-    const meta =
-        document.createElement("div");
-
-    meta.className =
-        "teacher-meta";
-
-
-    const date =
-        document.createElement("span");
-
-    date.textContent =
-        formatDate(post.createdAt);
-
-
-    const arrow =
-        document.createElement("span");
-
-    arrow.className =
-        "card-arrow";
-
-    arrow.textContent =
-        "→";
-
-
-    meta.append(
-        date,
-        arrow
-    );
-
-
-    content.append(
-        skill,
-        name,
-        description,
-        meta
-    );
-
-
-    card.append(
-        image,
-        content
-    );
-
-
-    card.addEventListener(
-        "click",
-        () => openDetailModal(post)
-    );
-
-
-    return card;
-}
-
-
-/* =========================================================
-   COMMUNITY POSTS
-========================================================= */
-
-function renderPostGrid(posts) {
-
-    if (!dom.postGrid) {
-        return;
-    }
-
-
-    dom.postGrid.replaceChildren();
-
-
-    if (!posts.length) {
-
-        dom.postGrid.appendChild(
-            createEmptyState(
-                "Nothing here yet.",
-                "Skills shared by the community will appear here."
-            )
-        );
-
-        return;
-    }
-
-
-    posts
-        .slice(0, 12)
-        .forEach(post => {
-
-            dom.postGrid.appendChild(
-                createPostCard(post)
-            );
-        });
-}
-
-
-function createPostCard(post) {
-
-    const card =
-        document.createElement("article");
-
-    card.className =
-        "post-card";
-
-
-    card.dataset.postId =
-        String(post.id);
-
-
-    const image =
-        document.createElement("div");
-
-    image.className =
-        "post-image";
-
-
-    if (post.imageUrl) {
-
-        const img =
-            document.createElement("img");
-
-        img.src =
-            post.imageUrl;
-
-        img.alt =
-            `${post.skill} by ${post.authorName}`;
-
-        img.loading =
-            "lazy";
-
-        image.appendChild(img);
-
-    } else {
-
-        const placeholder =
-            document.createElement("div");
-
-        placeholder.className =
-            "post-image-placeholder";
-
-
-        const avatar =
-            document.createElement("span");
-
-        avatar.className =
-            "placeholder-avatar";
-
-        avatar.textContent =
-            getInitials(post.authorName);
-
-
-        placeholder.appendChild(
-            avatar
-        );
-
-
-        image.appendChild(
-            placeholder
-        );
-    }
-
-
-    const body =
-        document.createElement("div");
-
-    body.className =
-        "post-body";
-
-
-    const author =
-        document.createElement("div");
-
-    author.className =
-        "post-author";
-
-
-    const avatar =
-        document.createElement("div");
-
-    avatar.className =
-        "mini-avatar";
-
-    avatar.textContent =
-        getInitials(post.authorName);
-
-
-    const authorText =
-        document.createElement("div");
-
-    authorText.className =
-        "post-author-text";
-
-
-    const authorStrong =
-        document.createElement("strong");
-
-    authorStrong.textContent =
-        post.authorName;
-
-
-    const authorDate =
-        document.createElement("span");
-
-    authorDate.textContent =
-        formatDate(post.createdAt);
-
-
-    authorText.append(
-        authorStrong,
-        authorDate
-    );
-
-
-    author.append(
-        avatar,
-        authorText
-    );
-
-
-    const title =
-        document.createElement("h3");
-
-    title.className =
-        "post-title";
-
-    title.textContent =
-        post.skill;
-
-
-    const content =
-        document.createElement("p");
-
-    content.className =
-        "post-content";
-
-    content.textContent =
-        post.description;
-
-
-    const actions =
-        document.createElement("div");
-
-    actions.className =
-        "post-actions";
-
-
-    const viewButton =
-        createActionButton(
-            "View",
-            "→"
-        );
-
-
-    viewButton.addEventListener(
-        "click",
-        event => {
-
-            event.stopPropagation();
-
-            openDetailModal(post);
-        }
-    );
-
-
-    actions.appendChild(
-        viewButton
-    );
-
-
-    if (post.meetingUrl) {
-
-        const live =
-            document.createElement("span");
-
-        live.className =
-            "live-badge";
-
-        live.textContent =
-            "Live";
-
-
-        actions.appendChild(
-            live
-        );
-    }
-
-
-    body.append(
-        author,
-        title,
-        content,
-        actions
-    );
-
-
-    card.append(
-        image,
-        body
-    );
-
-
-    card.addEventListener(
-        "click",
-        () => openDetailModal(post)
-    );
-
-
-    return card;
-}
-
-
-function createActionButton(label, icon) {
-
-    const button =
-        document.createElement("button");
-
-    button.type =
-        "button";
-
-    button.className =
-        "post-action";
-
-
-    const text =
-        document.createElement("span");
-
-    text.textContent =
-        label;
-
-
-    const symbol =
-        document.createElement("span");
-
-    symbol.textContent =
-        icon;
-
-
-    button.append(
-        text,
-        symbol
-    );
-
-
-    return button;
-}
-
-
-/* =========================================================
-   EMPTY STATES
-========================================================= */
-
-function createEmptyState(title, message) {
-
-    const empty =
-        document.createElement("div");
-
-    empty.className =
-        "empty-state";
-
-
-    const heading =
-        document.createElement("h3");
-
-    heading.textContent =
-        title;
-
-
-    const paragraph =
-        document.createElement("p");
-
-    paragraph.textContent =
-        message;
-
-
-    empty.append(
-        heading,
-        paragraph
-    );
-
-
-    return empty;
-}
-
-
-function renderEmptyFeed(title, message) {
-
-    if (!dom.teacherGrid) {
-        return;
-    }
-
-
-    dom.teacherGrid.replaceChildren(
-        createEmptyState(
-            title,
-            message
-        )
-    );
-}
-
-
-function renderCommunityEmpty(title, message) {
-
-    if (!dom.postGrid) {
-        return;
-    }
-
-
-    dom.postGrid.replaceChildren(
-        createEmptyState(
-            title,
-            message
-        )
-    );
-}
-
-
-/* =========================================================
-   STATS
-========================================================= */
-
-function updateStats() {
-
-    const posts =
-        state.posts;
-
-
-    const teacherSet =
-        new Set(
-            posts.map(
-                post => post.uid
-            )
-        );
-
-
-    const skillSet =
-        new Set(
-            posts.map(
-                post =>
-                    post.skill
-                        .trim()
-                        .toLowerCase()
-            )
-        );
-
-
-    animateNumber(
-        dom.heroPostCount,
-        posts.length
-    );
-
-
-    animateNumber(
-        dom.heroTeacherCount,
-        teacherSet.size
-    );
-
-
-    animateNumber(
-        dom.heroSkillCount,
-        skillSet.size
-    );
-}
-
-
-function animateNumber(element, target) {
-
-    if (!element) {
-        return;
-    }
-
-
-    const start =
-        Number(element.textContent) || 0;
-
-
-    if (start === target) {
-        return;
-    }
-
-
-    const duration =
-        500;
-
-    const startTime =
-        performance.now();
-
-
-    function frame(now) {
-
-        const progress =
-            Math.min(
-                (now - startTime) /
-                duration,
-                1
-            );
-
-
-        const eased =
-            1 -
-            Math.pow(
-                1 - progress,
-                3
-            );
-
-
-        const value =
-            Math.round(
-                start +
-                (target - start) *
-                eased
-            );
-
-
-        element.textContent =
-            value.toLocaleString();
-
-
-        if (progress < 1) {
-            requestAnimationFrame(frame);
-        }
-    }
-
-
-    requestAnimationFrame(frame);
-}
-
-
-/* =========================================================
-   CREATE MODAL
-========================================================= */
-
-function openCreateModal() {
-
-    resetCreateForm();
-
-    updateProfileUI();
-
-    openModal(
-        dom.createModal
-    );
-
-
-    setTimeout(
-        () => {
-            dom.skillInput?.focus();
-        },
-        100
-    );
-}
-
-
-function resetCreateForm() {
-
-    if (!dom.createPostForm) {
-        return;
-    }
-
-
-    dom.createPostForm.reset();
-
-
-    state.selectedImage =
-        "";
-
-
-    dom.uploadBox?.classList.remove(
-        "has-image"
-    );
-
-
-    if (dom.imagePreview) {
-
-        dom.imagePreview.src =
-            "";
-    }
-
-
-    if (dom.meetingLink) {
-
-        dom.meetingLink.classList.remove(
-            "visible"
-        );
-    }
-
-
-    if (dom.meetingUrl) {
-
-        dom.meetingUrl.value =
-            "";
-    }
-
-
-    updateCharacterCount();
-}
-
-
-/* =========================================================
-   CREATE FORM
-========================================================= */
-
-function bindCreateForm() {
-
-    dom.createPostForm?.addEventListener(
-        "submit",
-        handleCreatePost
-    );
-}
-
 
 async function handleCreatePost(event) {
 
@@ -1586,6 +993,28 @@ async function handleCreatePost(event) {
 
 
     if (state.submitting) {
+
+        return;
+    }
+
+
+    /*
+        IMPORTANT:
+        A post cannot be created without
+        an authenticated Supabase user.
+    */
+
+    const user =
+        await getCurrentUser();
+
+
+    if (!user) {
+
+        showToast(
+            "Sign in before creating a skill.",
+            "!"
+        );
+
         return;
     }
 
@@ -1672,7 +1101,11 @@ async function handleCreatePost(event) {
         }
 
 
-        if (!isValidHttpUrl(meetingUrl)) {
+        if (
+            !isValidHttpUrl(
+                meetingUrl
+            )
+        ) {
 
             showToast(
                 "Use a valid http or https link.",
@@ -1686,16 +1119,58 @@ async function handleCreatePost(event) {
     }
 
 
-    setUserName(authorName);
+    /*
+        Update Supabase username first.
 
+        This means changing the name here changes
+        the account's actual username.
+    */
+
+    if (
+        authorName !==
+        getUserName()
+    ) {
+
+        try {
+
+            await setUserName(
+                authorName
+            );
+
+        } catch (error) {
+
+            showToast(
+                error.message,
+                "!"
+            );
+
+            return;
+        }
+    }
+
+
+    /*
+        NOTICE:
+        There is NO uid here.
+
+        The backend gets the user ID from
+        the verified Supabase access token.
+    */
 
     const payload = {
-        uid: getUID(),
-        authorName,
+
+        authorName:
+            getUserName(),
+
         skill,
+
         description,
-        imageUrl: state.selectedImage || "",
-        meetingUrl: meetingUrl || ""
+
+        imageUrl:
+            state.selectedImage || "",
+
+        meetingUrl:
+            meetingUrl || ""
     };
 
 
@@ -1709,21 +1184,20 @@ async function handleCreatePost(event) {
     try {
 
         const response =
-            await fetch(
+            await authenticatedFetch(
                 POSTS_ENDPOINT,
                 {
                     method: "POST",
 
                     headers: {
-                        "Content-Type":
-                            "application/json",
-
                         "Accept":
                             "application/json"
                     },
 
                     body:
-                        JSON.stringify(payload)
+                        JSON.stringify(
+                            payload
+                        )
                 }
             );
 
@@ -1740,7 +1214,10 @@ async function handleCreatePost(event) {
                     await response.json();
 
 
-                if (errorData?.error) {
+                if (
+                    errorData?.error
+                ) {
+
                     message =
                         errorData.error;
                 }
@@ -1750,7 +1227,9 @@ async function handleCreatePost(event) {
             }
 
 
-            throw new Error(message);
+            throw new Error(
+                message
+            );
         }
 
 
@@ -1759,7 +1238,9 @@ async function handleCreatePost(event) {
 
 
         const normalized =
-            normalizePost(created);
+            normalizePost(
+                created
+            );
 
 
         state.posts.unshift(
@@ -1788,12 +1269,17 @@ async function handleCreatePost(event) {
         );
 
 
-        dom.notificationDot.hidden =
-            true;
+        if (dom.notificationDot) {
+
+            dom.notificationDot.hidden =
+                true;
+        }
 
 
         document
-            .getElementById("discover")
+            .getElementById(
+                "discover"
+            )
             ?.scrollIntoView({
                 behavior: "smooth",
                 block: "start"
@@ -1809,7 +1295,9 @@ async function handleCreatePost(event) {
 
 
         showToast(
-            getFriendlyApiError(error),
+            getFriendlyApiError(
+                error
+            ),
             "!"
         );
 
@@ -1818,534 +1306,30 @@ async function handleCreatePost(event) {
         state.submitting =
             false;
 
-        setSubmitLoading(false);
-    }
-}
-
-
-function setSubmitLoading(loading) {
-
-    if (!dom.submitPostButton) {
-        return;
-    }
-
-
-    dom.submitPostButton.disabled =
-        loading;
-
-
-    if (loading) {
-
-        dom.submitPostButton.dataset.originalText =
-            dom.submitPostButton.textContent;
-
-
-        dom.submitPostButton.textContent =
-            "Publishing...";
-
-    } else {
-
-        dom.submitPostButton.innerHTML =
-            `
-                Publish skill
-                <span
-                    class="button-arrow"
-                    aria-hidden="true"
-                >
-                    →
-                </span>
-            `;
-    }
-}
-
-
-function getFriendlyApiError(error) {
-
-    const message =
-        error?.message || "";
-
-
-    if (
-        message.includes(
-            "Failed to fetch"
-        )
-    ) {
-
-        return (
-            "Couldn't reach the Skilltree server."
+        setSubmitLoading(
+            false
         );
     }
-
-
-    if (
-        message.includes(
-            "relation"
-        ) &&
-        message.includes(
-            "does not exist"
-        )
-    ) {
-
-        return (
-            "The posts table hasn't been created yet."
-        );
-    }
-
-
-    return (
-        message ||
-        "Something went wrong while publishing."
-    );
 }
 
 
 /* =========================================================
-   IMAGE UPLOAD
+   PROFILE FORM
 ========================================================= */
-
-function bindImageUpload() {
-
-    dom.uploadBox?.addEventListener(
-        "click",
-        () => dom.imageInput?.click()
-    );
-
-
-    dom.uploadBox?.addEventListener(
-        "keydown",
-        event => {
-
-            if (
-                event.key === "Enter" ||
-                event.key === " "
-            ) {
-
-                event.preventDefault();
-
-                dom.imageInput?.click();
-            }
-        }
-    );
-
-
-    dom.imageInput?.addEventListener(
-        "change",
-        handleImageSelection
-    );
-}
-
-
-async function handleImageSelection(event) {
-
-    const file =
-        event.target.files?.[0];
-
-
-    if (!file) {
-        return;
-    }
-
-
-    if (!file.type.startsWith("image/")) {
-
-        showToast(
-            "Please choose an image.",
-            "!"
-        );
-
-        event.target.value =
-            "";
-
-        return;
-    }
-
-
-    if (file.size > 5 * 1024 * 1024) {
-
-        showToast(
-            "That image is larger than 5 MB.",
-            "!"
-        );
-
-        event.target.value =
-            "";
-
-        return;
-    }
-
-
-    try {
-
-        showToast(
-            "Preparing image...",
-            "↑"
-        );
-
-
-        const compressed =
-            await compressImage(file);
-
-
-        state.selectedImage =
-            compressed;
-
-
-        dom.imagePreview.src =
-            compressed;
-
-
-        dom.uploadBox.classList.add(
-            "has-image"
-        );
-
-
-        showToast(
-            "Image ready.",
-            "✓"
-        );
-
-    } catch (error) {
-
-        console.error(
-            "Image processing failed:",
-            error
-        );
-
-
-        showToast(
-            "Couldn't process that image.",
-            "!"
-        );
-
-
-        event.target.value =
-            "";
-    }
-}
-
-
-/*
-    Compress the image before putting it into the
-    PostgreSQL TEXT field as a data URL.
-
-    This keeps the database payload much smaller than
-    uploading the original camera/photo file.
-*/
-
-async function compressImage(file) {
-
-    const source =
-        await readFileAsDataURL(file);
-
-
-    const image =
-        await loadImage(source);
-
-
-    const maxWidth =
-        1200;
-
-
-    const scale =
-        Math.min(
-            1,
-            maxWidth / image.width
-        );
-
-
-    const width =
-        Math.round(
-            image.width * scale
-        );
-
-
-    const height =
-        Math.round(
-            image.height * scale
-        );
-
-
-    const canvas =
-        document.createElement("canvas");
-
-
-    canvas.width =
-        width;
-
-    canvas.height =
-        height;
-
-
-    const context =
-        canvas.getContext("2d");
-
-
-    if (!context) {
-        throw new Error(
-            "Canvas unavailable"
-        );
-    }
-
-
-    context.drawImage(
-        image,
-        0,
-        0,
-        width,
-        height
-    );
-
-
-    return canvas.toDataURL(
-        "image/jpeg",
-        0.76
-    );
-}
-
-
-function readFileAsDataURL(file) {
-
-    return new Promise(
-        (resolve, reject) => {
-
-            const reader =
-                new FileReader();
-
-
-            reader.onload =
-                () => resolve(
-                    reader.result
-                );
-
-
-            reader.onerror =
-                () => reject(
-                    reader.error ||
-                    new Error(
-                        "Could not read image"
-                    )
-                );
-
-
-            reader.readAsDataURL(
-                file
-            );
-        }
-    );
-}
-
-
-function loadImage(source) {
-
-    return new Promise(
-        (resolve, reject) => {
-
-            const image =
-                new Image();
-
-
-            image.onload =
-                () => resolve(image);
-
-
-            image.onerror =
-                () => reject(
-                    new Error(
-                        "Could not load image"
-                    )
-                );
-
-
-            image.src =
-                source;
-        }
-    );
-}
-
-
-/* =========================================================
-   LIVE OPTIONS
-========================================================= */
-
-function bindLiveOptions() {
-
-    const options =
-        document.querySelectorAll(
-            'input[name="liveOption"]'
-        );
-
-
-    options.forEach(option => {
-
-        option.addEventListener(
-            "change",
-            () => {
-
-                const visible =
-                    option.value ===
-                    "meeting";
-
-
-                dom.meetingLink?.classList.toggle(
-                    "visible",
-                    visible
-                );
-
-
-                if (!visible) {
-
-                    dom.meetingUrl.value =
-                        "";
-                }
-            }
-        );
-    });
-}
-
-
-/* =========================================================
-   CHARACTER COUNT
-========================================================= */
-
-function bindCharacterCounter() {
-
-    dom.descriptionInput?.addEventListener(
-        "input",
-        updateCharacterCount
-    );
-}
-
-
-function updateCharacterCount() {
-
-    if (
-        !dom.descriptionInput ||
-        !dom.characterCount
-    ) {
-        return;
-    }
-
-
-    const length =
-        dom.descriptionInput.value.length;
-
-
-    dom.characterCount.textContent =
-        `${length} / 2000`;
-}
-
-
-/* =========================================================
-   DETAIL MODAL
-========================================================= */
-
-function openDetailModal(post) {
-
-    if (!post) {
-        return;
-    }
-
-
-    state.activePost =
-        post;
-
-
-    dom.detailTitle.textContent =
-        post.skill;
-
-
-    dom.detailAuthor.textContent =
-        `by ${post.authorName} · ${formatDate(post.createdAt)}`;
-
-
-    dom.detailText.textContent =
-        post.description;
-
-
-    if (post.imageUrl) {
-
-        dom.detailImage.src =
-            post.imageUrl;
-
-        dom.detailImage.alt =
-            `${post.skill} by ${post.authorName}`;
-
-        dom.detailImage.hidden =
-            false;
-
-    } else {
-
-        dom.detailImage.src =
-            "";
-
-        dom.detailImage.hidden =
-            true;
-    }
-
-
-    if (post.meetingUrl) {
-
-        dom.detailLive.hidden =
-            false;
-
-
-        dom.detailMeetingLink.href =
-            post.meetingUrl;
-
-
-        dom.detailMeetingLink.textContent =
-            post.meetingUrl;
-
-    } else {
-
-        dom.detailLive.hidden =
-            true;
-
-
-        dom.detailMeetingLink.href =
-            "#";
-    }
-
-
-    openModal(
-        dom.detailModal
-    );
-}
-
-
-/* =========================================================
-   PROFILE
-========================================================= */
-
-function openProfileModal() {
-
-    updateProfileUI();
-
-    openModal(
-        dom.profileModal
-    );
-
-
-    setTimeout(
-        () => {
-            dom.profileNameInput?.focus();
-        },
-        100
-    );
-}
-
 
 function bindProfileForm() {
 
     dom.profileForm?.addEventListener(
         "submit",
-        event => {
+        async event => {
 
             event.preventDefault();
 
 
             const name =
-                dom.profileNameInput.value.trim();
+                dom.profileNameInput
+                    .value
+                    .trim();
 
 
             if (!name) {
@@ -2359,181 +1343,74 @@ function bindProfileForm() {
             }
 
 
-            setUserName(name);
+            try {
+
+                await setUserName(
+                    name
+                );
 
 
-            closeModal(
-                dom.profileModal
-            );
+                closeModal(
+                    dom.profileModal
+                );
 
 
-            showToast(
-                "Profile updated.",
-                "✓"
-            );
+                showToast(
+                    "Profile updated.",
+                    "✓"
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "Profile update failed:",
+                    error
+                );
+
+
+                showToast(
+                    error.message ||
+                    "Couldn't update profile.",
+                    "!"
+                );
+            }
         }
     );
 }
 
 
 /* =========================================================
-   MODALS
+   PROFILE MODAL
 ========================================================= */
 
-function bindModalControls() {
+function openProfileModal() {
 
-    document
-        .querySelectorAll(
-            "[data-close-modal]"
-        )
-        .forEach(button => {
+    if (!state.user) {
 
-            button.addEventListener(
-                "click",
-                () => {
-
-                    const id =
-                        button.dataset.closeModal;
-
-
-                    const modal =
-                        document.getElementById(id);
-
-
-                    closeModal(modal);
-                }
-            );
-        });
-
-
-    [
-        dom.createModal,
-        dom.detailModal,
-        dom.profileModal
-    ]
-        .filter(Boolean)
-        .forEach(modal => {
-
-            modal.addEventListener(
-                "click",
-                event => {
-
-                    if (
-                        event.target === modal
-                    ) {
-
-                        closeModal(
-                            modal
-                        );
-                    }
-                }
-            );
-        });
-}
-
-
-function openModal(modal) {
-
-    if (!modal) {
-        return;
-    }
-
-
-    modal.classList.add(
-        "open"
-    );
-
-
-    document.body.style.overflow =
-        "hidden";
-}
-
-
-function closeModal(modal) {
-
-    if (!modal) {
-        return;
-    }
-
-
-    modal.classList.remove(
-        "open"
-    );
-
-
-    const anyOpen =
-        document.querySelector(
-            ".modal-overlay.open"
+        showToast(
+            "Sign in to edit your profile.",
+            "!"
         );
 
-
-    if (!anyOpen) {
-
-        document.body.style.overflow =
-            "";
+        return;
     }
-}
 
 
-/* =========================================================
-   KEYBOARD SHORTCUTS
-========================================================= */
-
-function bindKeyboardShortcuts() {
-
-    document.addEventListener(
-        "keydown",
-        event => {
-
-            if (
-                event.key === "/" &&
-                !isTypingTarget(event.target)
-            ) {
-
-                event.preventDefault();
-
-                dom.searchInput?.focus();
-
-                return;
-            }
+    updateProfileUI();
 
 
-            if (event.key === "Escape") {
-
-                const openModal =
-                    document.querySelector(
-                        ".modal-overlay.open"
-                    );
-
-
-                if (openModal) {
-
-                    closeModal(
-                        openModal
-                    );
-                }
-            }
-        }
+    openModal(
+        dom.profileModal
     );
-}
 
 
-function isTypingTarget(element) {
+    setTimeout(
+        () => {
 
-    if (!element) {
-        return false;
-    }
+            dom.profileNameInput?.focus();
 
-
-    const tag =
-        element.tagName?.toLowerCase();
-
-
-    return (
-        tag === "input" ||
-        tag === "textarea" ||
-        tag === "select" ||
-        element.isContentEditable
+        },
+        100
     );
 }
 
@@ -2558,18 +1435,46 @@ function renderInitialTree() {
 }
 
 
-function renderUserTree() {
-
-    const userPosts =
-        state.posts.filter(
-            post =>
-                post.uid === getUID()
-        );
-
+async function renderUserTree() {
 
     const nodes =
         document.querySelectorAll(
             ".large-node"
+        );
+
+
+    if (!nodes.length) {
+
+        return;
+    }
+
+
+    /*
+        No logged-in user = empty tree.
+    */
+
+    if (!state.user) {
+
+        nodes.forEach(node => {
+
+            node.replaceChildren();
+
+            node.style.opacity =
+                "0.22";
+
+            node.title =
+                "Sign in to see your tree";
+        });
+
+        return;
+    }
+
+
+    const userPosts =
+        state.posts.filter(
+            post =>
+                post.userId ===
+                state.user.id
         );
 
 
@@ -2611,10 +1516,617 @@ function renderUserTree() {
 
 
 /* =========================================================
-   DATE FORMATTING
+   BUTTONS
 ========================================================= */
 
-function formatDate(dateValue) {
+function bindButtons() {
+
+    [
+        dom.heroCreateButton,
+        dom.treeTeachButton,
+        dom.ctaCreateButton
+    ]
+        .filter(Boolean)
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    if (!state.user) {
+
+                        showToast(
+                            "Sign in to teach a skill.",
+                            "!"
+                        );
+
+                        return;
+                    }
+
+
+                    openCreateModal();
+                }
+            );
+        });
+
+
+    dom.profileButton?.addEventListener(
+        "click",
+        openProfileModal
+    );
+
+
+    dom.notificationButton?.addEventListener(
+        "click",
+        () => {
+
+            showToast(
+                "You're all caught up.",
+                "✓"
+            );
+
+
+            if (
+                dom.notificationDot
+            ) {
+
+                dom.notificationDot.hidden =
+                    true;
+            }
+        }
+    );
+}
+
+
+/* =========================================================
+   CREATE MODAL
+========================================================= */
+
+function openCreateModal() {
+
+    if (!state.user) {
+
+        showToast(
+            "Sign in to create a skill.",
+            "!"
+        );
+
+        return;
+    }
+
+
+    resetCreateForm();
+
+    updateProfileUI();
+
+
+    openModal(
+        dom.createModal
+    );
+
+
+    setTimeout(
+        () => {
+
+            dom.skillInput?.focus();
+
+        },
+        100
+    );
+}
+
+
+function resetCreateForm() {
+
+    if (!dom.createPostForm) {
+
+        return;
+    }
+
+
+    dom.createPostForm.reset();
+
+
+    state.selectedImage =
+        "";
+
+
+    dom.uploadBox?.classList.remove(
+        "has-image"
+    );
+
+
+    if (dom.imagePreview) {
+
+        dom.imagePreview.src =
+            "";
+    }
+
+
+    if (dom.meetingLink) {
+
+        dom.meetingLink.classList.remove(
+            "visible"
+        );
+    }
+
+
+    if (dom.meetingUrl) {
+
+        dom.meetingUrl.value =
+            "";
+    }
+
+
+    updateCharacterCount();
+}
+
+
+/* =========================================================
+   SUBMIT BUTTON
+========================================================= */
+
+function setSubmitLoading(
+    loading
+) {
+
+    if (!dom.submitPostButton) {
+
+        return;
+    }
+
+
+    dom.submitPostButton.disabled =
+        loading;
+
+
+    if (loading) {
+
+        dom.submitPostButton.dataset.originalText =
+            dom.submitPostButton.textContent;
+
+
+        dom.submitPostButton.textContent =
+            "Publishing...";
+
+    } else {
+
+        dom.submitPostButton.innerHTML =
+            `
+                Publish skill
+                <span
+                    class="button-arrow"
+                    aria-hidden="true"
+                >
+                    →
+                </span>
+            `;
+    }
+}
+
+
+/* =========================================================
+   API ERROR
+========================================================= */
+
+function getFriendlyApiError(
+    error
+) {
+
+    const message =
+        error?.message || "";
+
+
+    if (
+        message.includes(
+            "You must be signed in"
+        )
+    ) {
+
+        return message;
+    }
+
+
+    if (
+        message.includes(
+            "401"
+        )
+    ) {
+
+        return (
+            "Your session expired. Please sign in again."
+        );
+    }
+
+
+    if (
+        message.includes(
+            "Failed to fetch"
+        )
+    ) {
+
+        return (
+            "Couldn't reach the Skilltree server."
+        );
+    }
+
+
+    if (
+        message.includes(
+            "relation"
+        ) &&
+        message.includes(
+            "does not exist"
+        )
+    ) {
+
+        return (
+            "The posts table hasn't been created yet."
+        );
+    }
+
+
+    return (
+        message ||
+        "Something went wrong while publishing."
+    );
+}
+
+
+/* =========================================================
+   STATS
+========================================================= */
+
+function updateStats() {
+
+    const posts =
+        state.posts;
+
+
+    const teacherSet =
+        new Set(
+            posts.map(
+                post =>
+                    post.userId
+            )
+        );
+
+
+    const skillSet =
+        new Set(
+            posts.map(
+                post =>
+                    post.skill
+                        .trim()
+                        .toLowerCase()
+            )
+        );
+
+
+    animateNumber(
+        dom.heroPostCount,
+        posts.length
+    );
+
+
+    animateNumber(
+        dom.heroTeacherCount,
+        teacherSet.size
+    );
+
+
+    animateNumber(
+        dom.heroSkillCount,
+        skillSet.size
+    );
+}
+
+
+function animateNumber(
+    element,
+    target
+) {
+
+    if (!element) {
+
+        return;
+    }
+
+
+    const start =
+        Number(
+            element.textContent
+        ) || 0;
+
+
+    if (start === target) {
+
+        return;
+    }
+
+
+    const duration =
+        500;
+
+
+    const startTime =
+        performance.now();
+
+
+    function frame(now) {
+
+        const progress =
+            Math.min(
+                (now - startTime) /
+                    duration,
+                1
+            );
+
+
+        const eased =
+            1 -
+            Math.pow(
+                1 - progress,
+                3
+            );
+
+
+        const value =
+            Math.round(
+                start +
+                (target - start) *
+                    eased
+            );
+
+
+        element.textContent =
+            value.toLocaleString();
+
+
+        if (progress < 1) {
+
+            requestAnimationFrame(
+                frame
+            );
+        }
+    }
+
+
+    requestAnimationFrame(
+        frame
+    );
+}
+
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+function bindSearch() {
+
+    dom.searchInput?.addEventListener(
+        "input",
+        event => {
+
+            state.search =
+                event.target.value
+                    .trim()
+                    .toLowerCase();
+
+
+            applyFilters();
+        }
+    );
+}
+
+
+function applyFilters() {
+
+    let posts =
+        [...state.posts];
+
+
+    if (state.search) {
+
+        posts =
+            posts.filter(
+                post => {
+
+                    const searchable =
+                        [
+                            post.skill,
+                            post.authorName,
+                            post.description
+                        ]
+                            .join(" ")
+                            .toLowerCase();
+
+
+                    return searchable.includes(
+                        state.search
+                    );
+                }
+            );
+    }
+
+
+    posts.sort(
+        getSortFunction(
+            state.sort
+        )
+    );
+
+
+    state.filteredPosts =
+        posts;
+
+
+    renderTeacherGrid(
+        state.filteredPosts
+    );
+
+
+    renderPostGrid(
+        state.filteredPosts
+    );
+
+
+    updateResultsLabel();
+}
+
+
+function getSortFunction(
+    sort
+) {
+
+    if (sort === "skill") {
+
+        return (a, b) =>
+            a.skill.localeCompare(
+                b.skill
+            );
+    }
+
+
+    if (sort === "teacher") {
+
+        return (a, b) =>
+            a.authorName.localeCompare(
+                b.authorName
+            );
+    }
+
+
+    return (a, b) =>
+        new Date(b.createdAt) -
+        new Date(a.createdAt);
+}
+
+
+/* =========================================================
+   SORTING
+========================================================= */
+
+function bindSorting() {
+
+    dom.sortButtons.forEach(
+        button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    state.sort =
+                        button.dataset.sort ||
+                        "recent";
+
+
+                    dom.sortButtons.forEach(
+                        item => {
+
+                            item.classList.toggle(
+                                "active",
+                                item === button
+                            );
+                        }
+                    );
+
+
+                    applyFilters();
+                }
+            );
+        }
+    );
+}
+
+
+/* =========================================================
+   RESULTS
+========================================================= */
+
+function updateResultsLabel() {
+
+    if (!dom.resultsLabel) {
+
+        return;
+    }
+
+
+    const count =
+        state.filteredPosts.length;
+
+
+    if (!state.posts.length) {
+
+        dom.resultsLabel.textContent =
+            "No skills shared yet";
+
+        return;
+    }
+
+
+    if (state.search) {
+
+        dom.resultsLabel.textContent =
+            `${count} ${
+                count === 1
+                    ? "result"
+                    : "results"
+            }`;
+
+        return;
+    }
+
+
+    dom.resultsLabel.textContent =
+        `${count} ${
+            count === 1
+                ? "skill"
+                : "skills"
+        } shared`;
+}
+
+
+/* =========================================================
+   CHARACTER COUNT
+========================================================= */
+
+function bindCharacterCounter() {
+
+    dom.descriptionInput?.addEventListener(
+        "input",
+        updateCharacterCount
+    );
+}
+
+
+function updateCharacterCount() {
+
+    if (
+        !dom.descriptionInput ||
+        !dom.characterCount
+    ) {
+
+        return;
+    }
+
+
+    const length =
+        dom.descriptionInput.value.length;
+
+
+    dom.characterCount.textContent =
+        `${length} / 2000`;
+}
+
+
+/* =========================================================
+   DATE
+========================================================= */
+
+function formatDate(
+    dateValue
+) {
 
     const date =
         new Date(dateValue);
@@ -2625,6 +2137,7 @@ function formatDate(dateValue) {
             date.getTime()
         )
     ) {
+
         return "Recently";
     }
 
@@ -2644,6 +2157,7 @@ function formatDate(dateValue) {
 
 
     if (seconds < 60) {
+
         return "Just now";
     }
 
@@ -2698,7 +2212,9 @@ function formatDate(dateValue) {
    VALIDATION
 ========================================================= */
 
-function isValidHttpUrl(value) {
+function isValidHttpUrl(
+    value
+) {
 
     try {
 
@@ -2719,16 +2235,105 @@ function isValidHttpUrl(value) {
 
 
 /* =========================================================
+   EMPTY STATES
+========================================================= */
+
+function createEmptyState(
+    title,
+    message
+) {
+
+    const empty =
+        document.createElement(
+            "div"
+        );
+
+    empty.className =
+        "empty-state";
+
+
+    const heading =
+        document.createElement(
+            "h3"
+        );
+
+    heading.textContent =
+        title;
+
+
+    const paragraph =
+        document.createElement(
+            "p"
+        );
+
+    paragraph.textContent =
+        message;
+
+
+    empty.append(
+        heading,
+        paragraph
+    );
+
+
+    return empty;
+}
+
+
+function renderEmptyFeed(
+    title,
+    message
+) {
+
+    if (!dom.teacherGrid) {
+
+        return;
+    }
+
+
+    dom.teacherGrid.replaceChildren(
+        createEmptyState(
+            title,
+            message
+        )
+    );
+}
+
+
+function renderCommunityEmpty(
+    title,
+    message
+) {
+
+    if (!dom.postGrid) {
+
+        return;
+    }
+
+
+    dom.postGrid.replaceChildren(
+        createEmptyState(
+            title,
+            message
+        )
+    );
+}
+
+
+/* =========================================================
    LOADING
 ========================================================= */
 
-function setLoading(loading) {
+function setLoading(
+    loading
+) {
 
     state.loading =
         loading;
 
 
     if (!loading) {
+
         return;
     }
 
@@ -2776,6 +2381,7 @@ function showToast(
         !dom.toast ||
         !dom.toastMessage
     ) {
+
         return;
     }
 

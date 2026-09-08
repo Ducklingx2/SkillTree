@@ -24,7 +24,7 @@
         rel="stylesheet"
     >
 
-    <!-- Your CSS -->
+    <!-- CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -92,11 +92,13 @@
             </button>
 
 
+            <!-- ACCOUNT BUTTON -->
+
             <button
                 class="profile-button"
                 id="profileButton"
                 type="button"
-                aria-label="Open profile"
+                aria-label="Account"
             >
 
                 <span
@@ -110,7 +112,7 @@
                     class="profile-name"
                     id="navProfileName"
                 >
-                    You
+                    Sign in
                 </span>
 
             </button>
@@ -619,6 +621,234 @@
 
 
     <!-- =====================================================
+         AUTH MODAL
+    ====================================================== -->
+
+    <div
+        class="modal-overlay"
+        id="authModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="authModalTitle"
+    >
+
+        <div class="modal">
+
+            <button
+                class="modal-close"
+                type="button"
+                data-close-modal="authModal"
+                aria-label="Close"
+            >
+                ×
+            </button>
+
+
+            <div class="modal-header">
+
+                <span class="section-kicker">
+                    SKILLTREE ACCOUNT
+                </span>
+
+                <h2 id="authModalTitle">
+                    Welcome back.
+                </h2>
+
+                <p id="authModalDescription">
+                    Sign in to grow your tree and share what you know.
+                </p>
+
+            </div>
+
+
+            <!-- AUTH TABS -->
+
+            <div
+                class="auth-tabs"
+                role="tablist"
+                aria-label="Authentication"
+            >
+
+                <button
+                    class="auth-tab active"
+                    id="signInTab"
+                    type="button"
+                    role="tab"
+                    aria-selected="true"
+                >
+                    Sign in
+                </button>
+
+                <button
+                    class="auth-tab"
+                    id="signUpTab"
+                    type="button"
+                    role="tab"
+                    aria-selected="false"
+                >
+                    Create account
+                </button>
+
+            </div>
+
+
+            <!-- SIGN IN FORM -->
+
+            <form
+                id="signInForm"
+                class="auth-form"
+            >
+
+                <div class="form-group">
+
+                    <label for="signInEmail">
+                        Email
+                    </label>
+
+                    <input
+                        id="signInEmail"
+                        type="email"
+                        autocomplete="email"
+                        placeholder="you@example.com"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="signInPassword">
+                        Password
+                    </label>
+
+                    <input
+                        id="signInPassword"
+                        type="password"
+                        autocomplete="current-password"
+                        placeholder="Your password"
+                        required
+                    >
+
+                </div>
+
+
+                <button
+                    class="primary-button"
+                    type="submit"
+                    id="signInButton"
+                    style="width: 100%;"
+                >
+
+                    Sign in
+
+                    <span
+                        class="button-arrow"
+                        aria-hidden="true"
+                    >
+                        →
+                    </span>
+
+                </button>
+
+            </form>
+
+
+            <!-- SIGN UP FORM -->
+
+            <form
+                id="signUpForm"
+                class="auth-form"
+                hidden
+            >
+
+                <div class="form-group">
+
+                    <label for="signUpName">
+                        Display name
+                    </label>
+
+                    <div class="username-input">
+
+                        <span>
+                            @
+                        </span>
+
+                        <input
+                            id="signUpName"
+                            type="text"
+                            maxlength="100"
+                            autocomplete="name"
+                            placeholder="Your name"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="signUpEmail">
+                        Email
+                    </label>
+
+                    <input
+                        id="signUpEmail"
+                        type="email"
+                        autocomplete="email"
+                        placeholder="you@example.com"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="signUpPassword">
+                        Password
+                    </label>
+
+                    <input
+                        id="signUpPassword"
+                        type="password"
+                        autocomplete="new-password"
+                        minlength="8"
+                        placeholder="At least 8 characters"
+                        required
+                    >
+
+                </div>
+
+
+                <button
+                    class="primary-button"
+                    type="submit"
+                    id="signUpButton"
+                    style="width: 100%;"
+                >
+
+                    Create account
+
+                    <span
+                        class="button-arrow"
+                        aria-hidden="true"
+                    >
+                        →
+                    </span>
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
          CREATE POST MODAL
     ====================================================== -->
 
@@ -997,6 +1227,10 @@
 
             <div class="modal-header">
 
+                <span class="section-kicker">
+                    YOUR ACCOUNT
+                </span>
+
                 <h2 id="profileModalTitle">
                     Your profile.
                 </h2>
@@ -1027,6 +1261,7 @@
                             type="text"
                             maxlength="100"
                             placeholder="Your name"
+                            autocomplete="name"
                             required
                         >
 
@@ -1053,6 +1288,18 @@
                 </button>
 
             </form>
+
+
+            <!-- SIGN OUT -->
+
+            <button
+                class="secondary-button"
+                id="signOutButton"
+                type="button"
+                style="width: 100%; margin-top: 12px;"
+            >
+                Sign out
+            </button>
 
         </div>
 

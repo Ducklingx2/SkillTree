@@ -85,40 +85,51 @@ func main() {
 
 	log.Println("Database connection established.")
 
-	// --------------------------------------------------
-	//  HANDLERS
-	// --------------------------------------------------
+// --------------------------------------------------
+// HANDLERS
+// --------------------------------------------------
 
-	postHandler := handlers.NewPostHandler(pool)
-	commentHandler := handlers.NewCommentHandler(pool)
+postHandler := handlers.NewPostHandler(pool)
+commentHandler := handlers.NewCommentHandler(pool)
 
-	// --------------------------------------------------
-	// ROUTES
-	// --------------------------------------------------
+// --------------------------------------------------
+// ROUTES
+// --------------------------------------------------
 
-	mux := http.NewServeMux()
+mux := http.NewServeMux()
 
-	// Health check
-	mux.HandleFunc("/", healthHandler)
+// Health check
+mux.HandleFunc("/", healthHandler)
 
-	// Posts API
-	mux.HandleFunc("/api/posts", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet:
-			postHandler.GetPosts(w, r)
+// Posts API
+mux.HandleFunc("/api/posts", func(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		postHandler.GetPosts(w, r)
 
-		case http.MethodPost:
-			postHandler.CreatePost(w, r)
+	case http.MethodPost:
+		postHandler.CreatePost(w, r)
 
-		default:
-			http.Error(
-				w,
-				"Method not allowed",
-				http.StatusMethodNotAllowed,
-			)
-		}
-	})
+	default:
+		http.Error(
+			w,
+			"Method not allowed",
+			http.StatusMethodNotAllowed,
+		)
+	}
+})
 
+// Comments API
+mux.HandleFunc(
+	"GET /api/posts/{postId}/comments",
+	commentHandler.GetComments,
+)
+
+mux.HandleFunc(
+	"POST /api/posts/{postId}/comments",
+	commentHandler.CreateComment,
+)
+	
 	// --------------------------------------------------
 	// PORT
 	// --------------------------------------------------

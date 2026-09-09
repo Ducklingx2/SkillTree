@@ -122,6 +122,9 @@ const dom = {
     createModal:
         document.getElementById("createModal"),
 
+    authModal:
+        document.getElementById("authModal"),
+
     detailModal:
         document.getElementById("detailModal"),
 

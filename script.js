@@ -634,6 +634,7 @@ function renderPostGrid(posts) {
 
     dom.postGrid.replaceChildren();
 
+
     if (!posts.length) {
 
         dom.postGrid.append(
@@ -643,7 +644,7 @@ function renderPostGrid(posts) {
                     : "No skills shared yet",
                 state.search
                     ? "Try searching for something else."
-                    : "Someone has to be brave enough to post first."
+                    : "Be the first to share what you know."
             )
         );
 
@@ -660,122 +661,233 @@ function renderPostGrid(posts) {
             "post-card";
 
 
-        /*
-            Image
-        */
+        /* =================================================
+           IMAGE
+        ================================================= */
+
+        const imageContainer =
+            document.createElement("div");
+
+        imageContainer.className =
+            "post-image";
+
 
         if (post.imageUrl) {
 
             const image =
                 document.createElement("img");
 
-            image.className =
-                "post-image";
-
             image.src =
                 post.imageUrl;
 
             image.alt =
-                `${post.skill} by ${post.authorName}`;
+                post.skill;
 
             image.loading =
                 "lazy";
 
-            card.append(
+            imageContainer.append(
                 image
+            );
+
+        } else {
+
+            const placeholder =
+                document.createElement("div");
+
+            placeholder.className =
+                "post-image-placeholder";
+
+            placeholder.innerHTML = `
+                <div class="placeholder-avatar">
+                    ${getInitials(post.authorName)}
+                </div>
+            `;
+
+            imageContainer.append(
+                placeholder
             );
         }
 
 
-        /*
-            Content
-        */
+        /* =================================================
+           BODY
+        ================================================= */
 
-        const content =
+        const body =
             document.createElement("div");
 
-        content.className =
-            "post-card-content";
+        body.className =
+            "post-body";
 
 
-        const skill =
-            document.createElement("h3");
-
-        skill.className =
-            "post-title";
-
-        skill.textContent =
-            post.skill;
-
+        /* =================================================
+           AUTHOR
+        ================================================= */
 
         const author =
-            document.createElement("p");
+            document.createElement("div");
 
         author.className =
             "post-author";
 
-        author.textContent =
-            `by ${post.authorName}`;
 
-
-        const description =
-            document.createElement("p");
-
-        description.className =
-            "post-description";
-
-        description.textContent =
-            post.description;
-
-
-        const footer =
+        const avatar =
             document.createElement("div");
 
-        footer.className =
-            "post-footer";
+        avatar.className =
+            "mini-avatar";
+
+        avatar.textContent =
+            getInitials(
+                post.authorName
+            );
 
 
-        const date =
+        const authorText =
+            document.createElement("div");
+
+        authorText.className =
+            "post-author-text";
+
+
+        const authorName =
+            document.createElement("strong");
+
+        authorName.textContent =
+            post.authorName;
+
+
+        const authorDate =
             document.createElement("span");
 
-        date.textContent =
+        authorDate.textContent =
             formatDate(
                 post.createdAt
             );
 
 
-        footer.append(
-            date
+        authorText.append(
+            authorName,
+            authorDate
         );
 
 
+        author.append(
+            avatar,
+            authorText
+        );
+
+
+        /* =================================================
+           TITLE
+        ================================================= */
+
+        const title =
+            document.createElement("h3");
+
+        title.className =
+            "post-title";
+
+        title.textContent =
+            post.skill;
+
+
+        /* =================================================
+           CONTENT
+        ================================================= */
+
+        const content =
+            document.createElement("p");
+
+        content.className =
+            "post-content";
+
+        content.textContent =
+            post.description;
+
+
+        /* =================================================
+           ACTIONS
+        ================================================= */
+
+        const actions =
+            document.createElement("div");
+
+        actions.className =
+            "post-actions";
+
+
+        const viewButton =
+            document.createElement("button");
+
+        viewButton.type =
+            "button";
+
+        viewButton.className =
+            "post-action";
+
+        viewButton.innerHTML = `
+            <span aria-hidden="true">↗</span>
+            <span>View skill</span>
+        `;
+
+
+        viewButton.addEventListener(
+            "click",
+            event => {
+
+                event.stopPropagation();
+
+                openPostDetail(
+                    post
+                );
+            }
+        );
+
+
+        actions.append(
+            viewButton
+        );
+
+
+        /* =================================================
+           LIVE TEACHING
+        ================================================= */
+
         if (post.meetingUrl) {
 
-            const live =
+            const liveBadge =
                 document.createElement("span");
 
-            live.className =
-                "post-live";
+            liveBadge.className =
+                "live-badge";
 
-            live.textContent =
+            liveBadge.textContent =
                 "Live teaching";
 
-            footer.append(
-                live
+
+            actions.append(
+                liveBadge
             );
         }
 
 
-        content.append(
-            skill,
+        /* =================================================
+           ASSEMBLE
+        ================================================= */
+
+        body.append(
             author,
-            description,
-            footer
+            title,
+            content,
+            actions
         );
 
 
         card.append(
-            content
+            imageContainer,
+            body
         );
 
 

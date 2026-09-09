@@ -292,17 +292,11 @@ function bindAuthForms() {
 }
 
 function bindAuthTabs() {
-    const signInTab =
-        document.getElementById("signInTab");
+    const signInTab = document.getElementById("signInTab");
+    const signUpTab = document.getElementById("signUpTab");
 
-    const signUpTab =
-        document.getElementById("signUpTab");
-
-    const signInForm =
-        document.getElementById("signInForm");
-
-    const signUpForm =
-        document.getElementById("signUpForm");
+    const signInForm = document.getElementById("signInForm");
+    const signUpForm = document.getElementById("signUpForm");
 
     if (
         !signInTab ||
@@ -310,6 +304,13 @@ function bindAuthTabs() {
         !signInForm ||
         !signUpForm
     ) {
+        console.error("Auth tabs/forms not found:", {
+            signInTab,
+            signUpTab,
+            signInForm,
+            signUpForm
+        });
+
         return;
     }
 
@@ -317,15 +318,8 @@ function bindAuthTabs() {
         signInTab.classList.add("active");
         signUpTab.classList.remove("active");
 
-        signInTab.setAttribute(
-            "aria-selected",
-            "true"
-        );
-
-        signUpTab.setAttribute(
-            "aria-selected",
-            "false"
-        );
+        signInTab.setAttribute("aria-selected", "true");
+        signUpTab.setAttribute("aria-selected", "false");
 
         signInForm.hidden = false;
         signUpForm.hidden = true;
@@ -335,15 +329,8 @@ function bindAuthTabs() {
         signUpTab.classList.add("active");
         signInTab.classList.remove("active");
 
-        signUpTab.setAttribute(
-            "aria-selected",
-            "true"
-        );
-
-        signInTab.setAttribute(
-            "aria-selected",
-            "false"
-        );
+        signUpTab.setAttribute("aria-selected", "true");
+        signInTab.setAttribute("aria-selected", "false");
 
         signUpForm.hidden = false;
         signInForm.hidden = true;

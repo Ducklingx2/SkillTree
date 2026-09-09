@@ -1472,43 +1472,25 @@ async function setUserName(name) {
 ========================================================= */
 
 function updateProfileUI() {
+    if (!dom.navProfileName || !dom.navAvatar) return;
 
-    const name =
-        getUserName();
+    if (state.user) {
+        const username =
+            state.user.user_metadata?.username ||
+            state.user.user_metadata?.display_name ||
+            state.user.email?.split("@")[0] ||
+            "You";
 
-
-    const initials =
-        getInitials(name);
-
-
-    if (dom.navProfileName) {
-
-        dom.navProfileName.textContent =
-            name;
-    }
-
-
-    if (dom.navAvatar) {
-
+        dom.navProfileName.textContent = username;
         dom.navAvatar.textContent =
-            initials;
+            username.charAt(0).toUpperCase();
+
+        return;
     }
 
-
-    if (dom.authorName) {
-
-        dom.authorName.value =
-            name;
-    }
-
-
-    if (dom.profileNameInput) {
-
-        dom.profileNameInput.value =
-            name;
-    }
+    dom.navProfileName.textContent = "Sign in";
+    dom.navAvatar.textContent = "?";
 }
-
 
 function getInitials(name) {
 

@@ -632,13 +632,18 @@ function closeModal(modal) {
         return;
     }
 
-    modal.classList.remove("open");
-    modal.setAttribute("aria-hidden", "true");
+    // Remove focus from anything inside the modal
+    // before hiding it from assistive technology.
+    if (modal.contains(document.activeElement)) {
+        document.activeElement.blur();
+    }
 
-    /*
-        Only remove the body lock when no modal
-        is currently open.
-    */
+    modal.classList.remove("open");
+
+    modal.setAttribute(
+        "aria-hidden",
+        "true"
+    );
 
     const anotherModalOpen =
         document.querySelector(
@@ -651,7 +656,6 @@ function closeModal(modal) {
         );
     }
 }
-
 
 /* =========================================================
    TEACHER GRID

@@ -353,7 +353,7 @@ function bindLiveOptions() {
             'input[name="liveOption"]:checked'
         );
 
-        const isLive = selected?.value === "yes";
+        const isLive = selected?.value === "meeting";
 
         meetingLink.classList.toggle("visible", isLive);
         meetingLink.disabled = !isLive;

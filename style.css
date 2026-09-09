@@ -1373,53 +1373,46 @@ img {
 
 .post-image {
     width: 100%;
-
     aspect-ratio: 16 / 10;
-
     overflow: hidden;
-
+    position: relative;
     background:
-        linear-gradient(
-            135deg,
-            #132a1e,
-            #09130e
-        );
+        radial-gradient(
+            circle at 30% 30%,
+            rgba(157, 242, 189, 0.10),
+            transparent 45%
+        ),
+        #09130e;
 }
-
 
 .post-image img {
+    display: block;
     width: 100%;
     height: 100%;
-
     object-fit: cover;
-
-    transition:
-        transform 0.45s ease;
+    object-position: center;
+    transition: transform 0.45s ease;
 }
-
 
 .post-card:hover .post-image img {
     transform: scale(1.04);
 }
 
-
 .post-image-placeholder {
     width: 100%;
     height: 100%;
-
     display: grid;
     place-items: center;
-
-    color: rgba(157,242,189,0.6);
-
+    color: rgba(157, 242, 189, 0.55);
     background:
         radial-gradient(
-            circle at 50% 50%,
-            rgba(157,242,189,0.09),
-            transparent 50%
-        );
+            circle at center,
+            rgba(157, 242, 189, 0.08),
+            transparent 60%
+        ),
+        #09130e;
+    font-size: 28px;
 }
-
 
 .post-body {
     padding: 20px;

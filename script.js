@@ -203,6 +203,65 @@ const dom = {
    INITIALIZATION
 ========================================================= */
 
+function bindAuthTabs() {
+    const signInTab =
+        document.getElementById("signInTab");
+
+    const signUpTab =
+        document.getElementById("signUpTab");
+
+    const signInForm =
+        document.getElementById("signInForm");
+
+    const signUpForm =
+        document.getElementById("signUpForm");
+
+    if (
+        !signInTab ||
+        !signUpTab ||
+        !signInForm ||
+        !signUpForm
+    ) {
+        return;
+    }
+
+    signInTab.addEventListener("click", () => {
+        signInTab.classList.add("active");
+        signUpTab.classList.remove("active");
+
+        signInTab.setAttribute(
+            "aria-selected",
+            "true"
+        );
+
+        signUpTab.setAttribute(
+            "aria-selected",
+            "false"
+        );
+
+        signInForm.hidden = false;
+        signUpForm.hidden = true;
+    });
+
+    signUpTab.addEventListener("click", () => {
+        signUpTab.classList.add("active");
+        signInTab.classList.remove("active");
+
+        signUpTab.setAttribute(
+            "aria-selected",
+            "true"
+        );
+
+        signInTab.setAttribute(
+            "aria-selected",
+            "false"
+        );
+
+        signUpForm.hidden = false;
+        signInForm.hidden = true;
+    });
+}
+
 function bindNavigation() {
     const navLinks = document.querySelectorAll(".nav-links a");
 

@@ -16,7 +16,7 @@ const SUPABASE_URL =
 const SUPABASE_PUBLISHABLE_KEY =
     "sb_publishable_TlzA00mjS3PVBIfBnXFpsg_Zq_9QwvX";
 
-const supabase =
+const supabaseClient =
     window.supabase.createClient(
         SUPABASE_URL,
         SUPABASE_PUBLISHABLE_KEY
@@ -258,7 +258,7 @@ async function initializeAuth() {
     const {
         data: { session },
         error
-    } = await supabase.auth.getSession();
+    } = await supabaseClient.auth.getSession();
 
     if (error) {
 
@@ -290,7 +290,7 @@ async function initializeAuth() {
         INITIAL_SESSION
     */
 
-    supabase.auth.onAuthStateChange(
+    supabaseClient.auth.onAuthStateChange(
         (_event, session) => {
 
             state.session =
@@ -404,7 +404,7 @@ async function signUp(
         data,
         error
     } =
-        await supabase.auth.signUp({
+        await supabaseClient.auth.signUp({
 
             email,
 
@@ -472,7 +472,7 @@ async function signIn(
         data,
         error
     } =
-        await supabase.auth.signInWithPassword({
+        await supabaseClient.auth.signInWithPassword({
 
             email:
                 email.trim(),
@@ -518,7 +518,7 @@ async function signOut() {
     const {
         error
     } =
-        await supabase.auth.signOut();
+        await supabaseClient.auth.signOut();
 
 
     if (error) {
@@ -558,7 +558,7 @@ async function getCurrentUser() {
         data: { user },
         error
     } =
-        await supabase.auth.getUser();
+        await supabaseClient.auth.getUser();
 
 
     if (error) {
@@ -623,7 +623,7 @@ async function setUserName(name) {
         data,
         error
     } =
-        await supabase.auth.updateUser({
+        await supabaseClient.auth.updateUser({
 
             data: {
                 username: cleanName
@@ -772,7 +772,7 @@ async function authenticatedFetch(
         data: { session },
         error
     } =
-        await supabase.auth.getSession();
+        await supabaseClient.auth.getSession();
 
 
     if (error) {

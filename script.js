@@ -200,6 +200,691 @@ const dom = {
    INITIALIZATION
 ========================================================= */
 
+function bindNavigation() {
+    const navLinks = document.querySelectorAll(".nav-links a");
+
+    navLinks.forEach((link) => {
+        link.addEventListener("click", (event) => {
+            const href = link.getAttribute("href");
+
+            if (!href || !href.startsWith("#")) return;
+
+            const target = document.querySelector(href);
+
+            if (!target) return;
+
+            event.preventDefault();
+
+            target.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        });
+    });
+}
+
+
+function bindModalControls() {
+    document.querySelectorAll(".modal-close").forEach((button) => {
+        button.addEventListener("click", () => {
+            const modal = button.closest(".modal-overlay");
+
+            if (modal) {
+                closeModal(modal);
+            }
+        });
+    });
+
+    document.querySelectorAll(".modal-overlay").forEach((overlay) => {
+        overlay.addEventListener("click", (event) => {
+            if (event.target === overlay) {
+                closeModal(overlay);
+            }
+        });
+    });
+}
+
+
+function bindCreateForm() {
+    const form = document.getElementById("createPostForm");
+
+    if (!form) return;
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        await handleCreatePost(event);
+    });
+}
+
+
+function bindImageUpload() {
+    const uploadBox = document.getElementById("uploadBox");
+    const imageInput = document.getElementById("imageInput");
+
+    if (!uploadBox || !imageInput) return;
+
+    uploadBox.addEventListener("click", () => {
+        imageInput.click();
+    });
+
+    imageInput.addEventListener("change", () => {
+        const file = imageInput.files?.[0];
+
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            showToast("Please select an image.", "error");
+            imageInput.value = "";
+            return;
+        }
+
+        state.selectedImage = file;
+
+        const reader = new FileReader();
+
+        reader.onload = (event) => {
+            uploadBox.innerHTML = `
+                <img
+                    src="${event.target.result}"
+                    alt="Selected image"
+                    class="upload-preview"
+                >
+                <span>Change image</span>
+            `;
+        };
+
+        reader.readAsDataURL(file);
+    });
+
+    uploadBox.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        uploadBox.classList.add("dragging");
+    });
+
+    uploadBox.addEventListener("dragleave", () => {
+        uploadBox.classList.remove("dragging");
+    });
+
+    uploadBox.addEventListener("drop", (event) => {
+        event.preventDefault();
+
+        uploadBox.classList.remove("dragging");
+
+        const file = event.dataTransfer?.files?.[0];
+
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            showToast("Please drop an image file.", "error");
+            return;
+        }
+
+        state.selectedImage = file;
+
+        const reader = new FileReader();
+
+        reader.onload = (readerEvent) => {
+            uploadBox.innerHTML = `
+                <img
+                    src="${readerEvent.target.result}"
+                    alt="Selected image"
+                    class="upload-preview"
+                >
+                <span>Change image</span>
+            `;
+        };
+
+        reader.readAsDataURL(file);
+    });
+}
+
+
+function bindLiveOptions() {
+    const liveOptions = document.querySelectorAll(
+        'input[name="liveOption"]'
+    );
+
+    const meetingLink = document.getElementById("meetingLink");
+
+    if (!liveOptions.length || !meetingLink) return;
+
+    function updateMeetingLinkVisibility() {
+        const selected = document.querySelector(
+            'input[name="liveOption"]:checked'
+        );
+
+        const isLive = selected?.value === "yes";
+
+        meetingLink.classList.toggle("visible", isLive);
+        meetingLink.disabled = !isLive;
+
+        if (!isLive) {
+            meetingLink.value = "";
+        }
+    }
+
+    liveOptions.forEach((option) => {
+        option.addEventListener(
+            "change",
+            updateMeetingLinkVisibility
+        );
+    });
+
+    updateMeetingLinkVisibility();
+}
+
+
+function bindKeyboardShortcuts() {
+    document.addEventListener("keydown", (event) => {
+        // Escape closes any open modal
+        if (event.key === "Escape") {
+            document
+                .querySelectorAll(".modal-overlay")
+                .forEach((modal) => {
+                    closeModal(modal);
+                });
+        }
+
+        // Ctrl/Cmd + K focuses search
+        if (
+            (event.ctrlKey || event.metaKey) &&
+            event.key.toLowerCase() === "k"
+        ) {
+            event.preventDefault();
+
+            const searchInput =
+                document.getElementById("searchInput");
+
+            if (searchInput) {
+                searchInput.focus();
+            }
+        }
+    });
+}
+
+
+function setupScrollNavigation() {
+    const sections = document.querySelectorAll("main section[id]");
+    const navLinks = document.querySelectorAll(
+        '.nav-links a[href^="#"]'
+    );
+
+    if (!sections.length || !navLinks.length) return;
+
+    const observer = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) return;
+
+                navLinks.forEach((link) => {
+                    link.classList.remove("active");
+
+                    if (
+                        link.getAttribute("href") ===
+                        `#${entry.target.id}`
+                    ) {
+                        link.classList.add("active");
+                    }
+                });
+            });
+        },
+        {
+            threshold: 0.25,
+            rootMargin: "-20% 0px -60% 0px"
+        }
+    );
+
+    sections.forEach((section) => {
+        observer.observe(section);
+    });
+}
+
+/* =========================================================
+   MODALS
+========================================================= */
+
+function openModal(modal) {
+
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+
+    document.body.classList.add("modal-open");
+}
+
+
+function closeModal(modal) {
+
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden", "true");
+
+    /*
+        Only remove the body lock when no modal
+        is currently open.
+    */
+
+    const anotherModalOpen =
+        document.querySelector(
+            ".modal-overlay.open"
+        );
+
+    if (!anotherModalOpen) {
+        document.body.classList.remove(
+            "modal-open"
+        );
+    }
+}
+
+
+/* =========================================================
+   TEACHER GRID
+========================================================= */
+
+function renderTeacherGrid(posts) {
+
+    if (!dom.teacherGrid) {
+        return;
+    }
+
+    dom.teacherGrid.replaceChildren();
+
+    if (!posts.length) {
+
+        dom.teacherGrid.append(
+            createEmptyState(
+                state.search
+                    ? "No teachers found"
+                    : "No teachers yet",
+                state.search
+                    ? "Try a different search."
+                    : "Be the first person to teach a skill."
+            )
+        );
+
+        return;
+    }
+
+    /*
+        Show each teacher only once.
+        The first post encountered represents them.
+    */
+
+    const teachers = [];
+    const seenUsers = new Set();
+
+    posts.forEach(post => {
+
+        const identifier =
+            post.userId ||
+            post.authorName;
+
+        if (seenUsers.has(identifier)) {
+            return;
+        }
+
+        seenUsers.add(identifier);
+        teachers.push(post);
+    });
+
+
+    teachers.forEach(post => {
+
+        const card =
+            document.createElement("article");
+
+        card.className =
+            "teacher-card";
+
+
+        const avatar =
+            document.createElement("div");
+
+        avatar.className =
+            "teacher-avatar";
+
+        avatar.textContent =
+            getInitials(
+                post.authorName
+            );
+
+
+        const content =
+            document.createElement("div");
+
+        content.className =
+            "teacher-card-content";
+
+
+        const name =
+            document.createElement("h3");
+
+        name.textContent =
+            post.authorName;
+
+
+        const skill =
+            document.createElement("p");
+
+        skill.className =
+            "teacher-skill";
+
+        skill.textContent =
+            post.skill;
+
+
+        const date =
+            document.createElement("span");
+
+        date.className =
+            "teacher-date";
+
+        date.textContent =
+            formatDate(
+                post.createdAt
+            );
+
+
+        content.append(
+            name,
+            skill,
+            date
+        );
+
+
+        card.append(
+            avatar,
+            content
+        );
+
+
+        card.addEventListener(
+            "click",
+            () => {
+
+                openPostDetail(
+                    post
+                );
+            }
+        );
+
+
+        dom.teacherGrid.append(
+            card
+        );
+    });
+}
+
+
+/* =========================================================
+   POST GRID
+========================================================= */
+
+function renderPostGrid(posts) {
+
+    if (!dom.postGrid) {
+        return;
+    }
+
+    dom.postGrid.replaceChildren();
+
+    if (!posts.length) {
+
+        dom.postGrid.append(
+            createEmptyState(
+                state.search
+                    ? "No skills found"
+                    : "No skills shared yet",
+                state.search
+                    ? "Try searching for something else."
+                    : "Someone has to be brave enough to post first."
+            )
+        );
+
+        return;
+    }
+
+
+    posts.forEach(post => {
+
+        const card =
+            document.createElement("article");
+
+        card.className =
+            "post-card";
+
+
+        /*
+            Image
+        */
+
+        if (post.imageUrl) {
+
+            const image =
+                document.createElement("img");
+
+            image.className =
+                "post-image";
+
+            image.src =
+                post.imageUrl;
+
+            image.alt =
+                `${post.skill} by ${post.authorName}`;
+
+            image.loading =
+                "lazy";
+
+            card.append(
+                image
+            );
+        }
+
+
+        /*
+            Content
+        */
+
+        const content =
+            document.createElement("div");
+
+        content.className =
+            "post-card-content";
+
+
+        const skill =
+            document.createElement("h3");
+
+        skill.className =
+            "post-title";
+
+        skill.textContent =
+            post.skill;
+
+
+        const author =
+            document.createElement("p");
+
+        author.className =
+            "post-author";
+
+        author.textContent =
+            `by ${post.authorName}`;
+
+
+        const description =
+            document.createElement("p");
+
+        description.className =
+            "post-description";
+
+        description.textContent =
+            post.description;
+
+
+        const footer =
+            document.createElement("div");
+
+        footer.className =
+            "post-footer";
+
+
+        const date =
+            document.createElement("span");
+
+        date.textContent =
+            formatDate(
+                post.createdAt
+            );
+
+
+        footer.append(
+            date
+        );
+
+
+        if (post.meetingUrl) {
+
+            const live =
+                document.createElement("span");
+
+            live.className =
+                "post-live";
+
+            live.textContent =
+                "Live teaching";
+
+            footer.append(
+                live
+            );
+        }
+
+
+        content.append(
+            skill,
+            author,
+            description,
+            footer
+        );
+
+
+        card.append(
+            content
+        );
+
+
+        card.addEventListener(
+            "click",
+            () => {
+
+                openPostDetail(
+                    post
+                );
+            }
+        );
+
+
+        dom.postGrid.append(
+            card
+        );
+    });
+}
+
+
+/* =========================================================
+   POST DETAIL
+========================================================= */
+
+function openPostDetail(post) {
+
+    if (!post) {
+        return;
+    }
+
+    state.activePost =
+        post;
+
+
+    if (dom.detailImage) {
+
+        if (post.imageUrl) {
+
+            dom.detailImage.src =
+                post.imageUrl;
+
+            dom.detailImage.hidden =
+                false;
+
+        } else {
+
+            dom.detailImage.src =
+                "";
+
+            dom.detailImage.hidden =
+                true;
+        }
+    }
+
+
+    if (dom.detailTitle) {
+
+        dom.detailTitle.textContent =
+            post.skill;
+    }
+
+
+    if (dom.detailAuthor) {
+
+        dom.detailAuthor.textContent =
+            post.authorName;
+    }
+
+
+    if (dom.detailText) {
+
+        dom.detailText.textContent =
+            post.description;
+    }
+
+
+    if (dom.detailLive) {
+
+        dom.detailLive.hidden =
+            !post.meetingUrl;
+    }
+
+
+    if (dom.detailMeetingLink) {
+
+        if (post.meetingUrl) {
+
+            dom.detailMeetingLink.href =
+                post.meetingUrl;
+
+            dom.detailMeetingLink.hidden =
+                false;
+
+        } else {
+
+            dom.detailMeetingLink.href =
+                "#";
+
+            dom.detailMeetingLink.hidden =
+                true;
+        }
+    }
+
+
+    openModal(
+        dom.detailModal
+    );
+}
 document.addEventListener(
     "DOMContentLoaded",
     initialize

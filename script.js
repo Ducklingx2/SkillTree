@@ -267,30 +267,47 @@ function bindAuthForms() {
         }
 
         try {
-            await signUp(
+            const data = await signUp(
                 email,
                 password,
                 username
             );
 
-            closeModal(dom.authModal);
+            console.log("Created user:", data.user);
 
-            showToast(
-                "Account created!",
-                "✓"
-            );
+            if (data.session) {
+                state.session = data.session;
+                state.user = data.user;
+
+                updateProfileUI();
+                updateAuthUI();
+
+                closeModal(dom.authModal);
+
+                showToast(
+                    "Account created!",
+                    "✓"
+                );
+            } else {
+                showToast(
+                    "Account created! Check your email to confirm.",
+                    "✉"
+                );
+
+                closeModal(dom.authModal);
+            }
 
         } catch (error) {
             console.error("Sign up failed:", error);
 
             showToast(
-                error.message || "Couldn't create your account.",
+                error.message ||
+                "Couldn't create your account.",
                 "!"
             );
         }
     });
 }
-
 function bindAuthTabs() {
     const signInTab = document.getElementById("signInTab");
     const signUpTab = document.getElementById("signUpTab");
@@ -1289,30 +1306,6 @@ async function signUp(email, password, username) {
     }
 
     console.log("Sign up response:", data);
-
-    return data;
-}
-
-    if (data.session) {
-
-        state.session =
-            data.session;
-
-        state.user =
-            data.user;
-
-        updateProfileUI();
-
-        updateAuthUI();
-
-    } else {
-
-        showToast(
-            "Check your email to confirm your account.",
-            "✉"
-        );
-    }
-
 
     return data;
 }

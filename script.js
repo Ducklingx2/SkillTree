@@ -2321,11 +2321,13 @@ function bindButtons() {
         });
 
 
-    dom.profileButton?.addEventListener(
-        "click",
-        openProfileModal
-    );
-
+   dom.profileButton?.addEventListener("click", () => {
+    if (state.user) {
+        openModal(dom.profileModal);
+    } else {
+        openModal(dom.authModal);
+    }
+});
 
     dom.notificationButton?.addEventListener(
         "click",

@@ -86,10 +86,11 @@ func main() {
 	log.Println("Database connection established.")
 
 	// --------------------------------------------------
-	// POST HANDLER
+	//  HANDLERS
 	// --------------------------------------------------
 
 	postHandler := handlers.NewPostHandler(pool)
+	commentHandler := handlers.NewCommentHandler(pool)
 
 	// --------------------------------------------------
 	// ROUTES

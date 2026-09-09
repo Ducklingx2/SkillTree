@@ -203,6 +203,94 @@ const dom = {
    INITIALIZATION
 ========================================================= */
 
+function bindAuthForms() {
+    const signInForm =
+        document.getElementById("signInForm");
+
+    const signUpForm =
+        document.getElementById("signUpForm");
+
+    signInForm?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const email =
+            document.getElementById("signInEmail")?.value.trim();
+
+        const password =
+            document.getElementById("signInPassword")?.value;
+
+        if (!email || !password) {
+            showToast(
+                "Enter your email and password.",
+                "!"
+            );
+            return;
+        }
+
+        try {
+            await signIn(email, password);
+
+            closeModal(dom.authModal);
+
+            showToast(
+                "Signed in.",
+                "✓"
+            );
+        } catch (error) {
+            console.error("Sign in failed:", error);
+
+            showToast(
+                error.message || "Couldn't sign in.",
+                "!"
+            );
+        }
+    });
+
+    signUpForm?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const username =
+            document.getElementById("signUpName")?.value.trim();
+
+        const email =
+            document.getElementById("signUpEmail")?.value.trim();
+
+        const password =
+            document.getElementById("signUpPassword")?.value;
+
+        if (!username || !email || !password) {
+            showToast(
+                "Fill in all the fields.",
+                "!"
+            );
+            return;
+        }
+
+        try {
+            await signUp(
+                email,
+                password,
+                username
+            );
+
+            closeModal(dom.authModal);
+
+            showToast(
+                "Account created!",
+                "✓"
+            );
+
+        } catch (error) {
+            console.error("Sign up failed:", error);
+
+            showToast(
+                error.message || "Couldn't create your account.",
+                "!"
+            );
+        }
+    });
+}
+
 function bindAuthTabs() {
     const signInTab =
         document.getElementById("signInTab");
@@ -1058,37 +1146,23 @@ document.addEventListener(
 
 
 async function initialize() {
-
     bindNavigation();
-
     bindButtons();
 
+    bindAuthTabs();
+    bindAuthForms();
+
     bindSearch();
-
     bindSorting();
-
     bindModalControls();
-
     bindCreateForm();
-
     bindProfileForm();
-
     bindImageUpload();
-
     bindLiveOptions();
-
     bindCharacterCounter();
-
     bindKeyboardShortcuts();
 
     renderInitialTree();
-
-    /*
-        Start Supabase authentication.
-
-        Supabase automatically restores the persisted
-        session when the client initializes.
-    */
 
     await initializeAuth();
 
@@ -1209,81 +1283,28 @@ function updateAuthUI() {
    SIGN UP
 ========================================================= */
 
-async function signUp(
-    email,
-    password,
-    username
-) {
-
-    email =
-        email.trim();
-
-    username =
-        username.trim()
-            .slice(0, 100);
-
-
-    if (!email) {
-        throw new Error(
-            "Enter your email."
-        );
-    }
-
-
-    if (!password) {
-        throw new Error(
-            "Enter a password."
-        );
-    }
-
-
-    if (password.length < 6) {
-        throw new Error(
-            "Password must be at least 6 characters."
-        );
-    }
-
-
-    if (!username) {
-        throw new Error(
-            "Enter a username."
-        );
-    }
-
-
+async function signUp(email, password, username) {
     const {
         data,
         error
-    } =
-        await supabaseClient.auth.signUp({
-
-            email,
-
-            password,
-
-            options: {
-
-                data: {
-                    username
-                }
+    } = await supabaseClient.auth.signUp({
+        email,
+        password,
+        options: {
+            data: {
+                username
             }
-        });
-
+        }
+    });
 
     if (error) {
-        throw new Error(
-            error.message
-        );
+        throw error;
     }
 
+    console.log("Sign up response:", data);
 
-    /*
-        If email confirmation is enabled,
-        data.session may be null.
-
-        If confirmation is disabled,
-        the user is immediately signed in.
-    */
+    return data;
+}
 
     if (data.session) {
 

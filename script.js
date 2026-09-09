@@ -665,50 +665,42 @@ function renderPostGrid(posts) {
            IMAGE
         ================================================= */
 
-        const imageContainer =
-            document.createElement("div");
+       const imageContainer = document.createElement("div");
+imageContainer.className = "post-image";
 
-        imageContainer.className =
-            "post-image";
+if (post.imageUrl) {
+    const image = document.createElement("img");
 
+    image.src = post.imageUrl;
+    image.alt = post.skill || "Skill post";
+    image.loading = "lazy";
 
-        if (post.imageUrl) {
+    image.addEventListener("error", () => {
+        image.remove();
 
-            const image =
-                document.createElement("img");
+        const placeholder = document.createElement("div");
+        placeholder.className = "post-image-placeholder";
 
-            image.src =
-                post.imageUrl;
+        const icon = document.createElement("span");
+        icon.textContent = "✦";
+        icon.setAttribute("aria-hidden", "true");
 
-            image.alt =
-                post.skill;
+        placeholder.append(icon);
+        imageContainer.append(placeholder);
+    });
 
-            image.loading =
-                "lazy";
+    imageContainer.append(image);
+} else {
+    const placeholder = document.createElement("div");
+    placeholder.className = "post-image-placeholder";
 
-            imageContainer.append(
-                image
-            );
+    const icon = document.createElement("span");
+    icon.textContent = "✦";
+    icon.setAttribute("aria-hidden", "true");
 
-        } else {
-
-            const placeholder =
-                document.createElement("div");
-
-            placeholder.className =
-                "post-image-placeholder";
-
-            placeholder.innerHTML = `
-                <div class="placeholder-avatar">
-                    ${getInitials(post.authorName)}
-                </div>
-            `;
-
-            imageContainer.append(
-                placeholder
-            );
-        }
-
+    placeholder.append(icon);
+    imageContainer.append(placeholder);
+}
 
         /* =================================================
            BODY

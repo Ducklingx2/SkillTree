@@ -39,6 +39,10 @@ const state = {
 
     filteredPosts: [],
 
+    comments: [],
+
+    commentSubmitting: false,
+
     sort: "recent",
 
     search: "",
@@ -195,7 +199,19 @@ const dom = {
         document.getElementById("toastIcon"),
 
     toastMessage:
-        document.getElementById("toastMessage")
+        document.getElementById("toastMessage"),
+
+    detailComments:
+        document.getElementById("detailComments"),
+
+    detailCommentForm:
+        document.getElementById("detailCommentForm"),
+
+    detailCommentInput:
+        document.getElementById("detailCommentInput"),
+
+    detailCommentSubmit:
+        document.getElementById("detailCommentSubmit")
 };
 
 
@@ -993,8 +1009,34 @@ if (post.imageUrl) {
 
 
         actions.append(
-            viewButton
-        );
+    viewButton
+);
+
+const replyButton =
+    document.createElement("button");
+
+replyButton.type = "button";
+replyButton.className = "post-action";
+
+replyButton.innerHTML = `
+    <span aria-hidden="true">💬</span>
+    <span>Reply</span>
+`;
+
+replyButton.addEventListener(
+    "click",
+    event => {
+        event.stopPropagation();
+
+        openPostDetail(post);
+
+        setTimeout(() => {
+            dom.detailCommentInput?.focus();
+        }, 100);
+    }
+);
+
+actions.append(replyButton);
 
 
         /* =================================================
@@ -1065,27 +1107,20 @@ function openPostDetail(post) {
         return;
     }
 
-    state.activePost =
-        post;
+    state.activePost = post;
 
 
     if (dom.detailImage) {
 
         if (post.imageUrl) {
 
-            dom.detailImage.src =
-                post.imageUrl;
-
-            dom.detailImage.hidden =
-                false;
+            dom.detailImage.src = post.imageUrl;
+            dom.detailImage.hidden = false;
 
         } else {
 
-            dom.detailImage.src =
-                "";
-
-            dom.detailImage.hidden =
-                true;
+            dom.detailImage.src = "";
+            dom.detailImage.hidden = true;
         }
     }
 
@@ -1139,6 +1174,400 @@ function openPostDetail(post) {
     }
 
 
+    // Reset comments for this post
+    state.comments = [];
+    state.commentSubmitting = false;
+
+
+    if (dom.detailComments) {
+
+        dom.detailComments.innerHTML = `
+            <div class="comments-loading">
+                Loading replies...
+            </div>
+        `;
+    }
+
+
+    if (dom.detailCommentCount) {
+
+        dom.detailCommentCount.textContent =
+            "0";
+    }
+
+
+    if (dom.detailCommentInput) {
+
+        dom.detailCommentInput.value = "";
+    }
+
+
+   
+    openModal(dom.detailModal);
+
+
+
+    loadComments(post.id);
+}
+/* =========================================================
+   COMMENTS / REPLIES
+========================================================= */
+
+async function loadComments(postId) {
+
+    if (!dom.detailComments) {
+        return;
+    }
+
+    dom.detailComments.replaceChildren();
+
+    const loading =
+        document.createElement("p");
+
+    loading.className =
+        "comments-loading";
+
+    loading.textContent =
+        "Loading replies...";
+
+    dom.detailComments.append(
+        loading
+    );
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_URL}/api/posts/${postId}/comments`,
+                {
+                    method: "GET",
+
+                    headers: {
+                        "Accept":
+                            "application/json"
+                    }
+                }
+            );
+
+        if (!response.ok) {
+
+            throw new Error(
+                `Server returned ${response.status}`
+            );
+        }
+
+        const comments =
+            await response.json();
+
+        state.comments =
+            Array.isArray(comments)
+                ? comments
+                : [];
+
+        renderComments();
+
+    } catch (error) {
+
+        console.error(
+            "Failed to load comments:",
+            error
+        );
+
+        dom.detailComments.replaceChildren();
+
+        const empty =
+            document.createElement("p");
+
+        empty.className =
+            "comments-empty";
+
+        empty.textContent =
+            "Couldn't load replies.";
+
+        dom.detailComments.append(
+            empty
+        );
+    }
+}
+
+
+function renderComments() {
+
+    if (!dom.detailComments) {
+        return;
+    }
+
+    dom.detailComments.replaceChildren();
+
+    const comments =
+        state.comments;
+
+    const count =
+        document.getElementById(
+            "detailCommentCount"
+        );
+
+    if (count) {
+        count.textContent =
+            comments.length;
+    }
+
+    if (!comments.length) {
+
+        const empty =
+            document.createElement("p");
+
+        empty.className =
+            "comments-empty";
+
+        empty.textContent =
+            "No replies yet. Start the conversation.";
+
+        dom.detailComments.append(
+            empty
+        );
+
+        return;
+    }
+
+    comments.forEach(comment => {
+
+        const item =
+            document.createElement("article");
+
+        item.className =
+            "comment";
+
+        if (comment.parentCommentId) {
+            item.classList.add(
+                "comment-reply"
+            );
+        }
+
+        const header =
+            document.createElement("div");
+
+        header.className =
+            "comment-header";
+
+        const avatar =
+            document.createElement("div");
+
+        avatar.className =
+            "comment-avatar";
+
+        avatar.textContent =
+            getInitials(
+                comment.authorName || "User"
+            );
+
+        const meta =
+            document.createElement("div");
+
+        meta.className =
+            "comment-meta";
+
+        const author =
+            document.createElement("strong");
+
+        author.textContent =
+            comment.authorName ||
+            "Unknown";
+
+        const date =
+            document.createElement("span");
+
+        date.textContent =
+            formatDate(
+                comment.createdAt
+            );
+
+        meta.append(
+            author,
+            date
+        );
+
+        header.append(
+            avatar,
+            meta
+        );
+
+        const content =
+            document.createElement("p");
+
+        content.className =
+            "comment-content";
+
+        content.textContent =
+            comment.content;
+
+        item.append(
+            header,
+            content
+        );
+
+        dom.detailComments.append(
+            item
+        );
+    });
+}
+
+
+async function submitComment() {
+
+    if (
+        state.commentSubmitting ||
+        !state.activePost
+    ) {
+        return;
+    }
+
+    if (!state.user) {
+
+        showToast(
+            "Sign in to reply.",
+            "!"
+        );
+
+        return;
+    }
+
+    const content =
+        dom.detailCommentInput?.value
+            .trim();
+
+    if (!content) {
+
+        showToast(
+            "Write something first.",
+            "!"
+        );
+
+        return;
+    }
+
+    state.commentSubmitting =
+        true;
+
+    if (dom.detailCommentSubmit) {
+        dom.detailCommentSubmit.disabled =
+            true;
+
+        dom.detailCommentSubmit.textContent =
+            "Replying...";
+    }
+
+    try {
+
+        const response =
+            await authenticatedFetch(
+                `${API_URL}/api/posts/${state.activePost.id}/comments`,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Accept":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+                            authorName:
+                                getUserName(),
+
+                            content,
+
+                            parentCommentId:
+                                null
+                        })
+                }
+            );
+
+        if (!response.ok) {
+
+            let message =
+                `Server returned ${response.status}`;
+
+            try {
+
+                const errorData =
+                    await response.json();
+
+                if (errorData?.error) {
+                    message =
+                        errorData.error;
+                }
+
+            } catch {
+                // Response wasn't JSON.
+            }
+
+            throw new Error(message);
+        }
+
+        const created =
+            await response.json();
+
+        state.comments.push(
+            created
+        );
+
+        if (dom.detailCommentInput) {
+            dom.detailCommentInput.value =
+                "";
+        }
+
+        renderComments();
+
+        showToast(
+            "Reply posted.",
+            "✓"
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Failed to create comment:",
+            error
+        );
+
+        showToast(
+            error.message ||
+            "Couldn't post your reply.",
+            "!"
+        );
+
+    } finally {
+
+        state.commentSubmitting =
+            false;
+
+        if (dom.detailCommentSubmit) {
+
+            dom.detailCommentSubmit.disabled =
+                false;
+
+            dom.detailCommentSubmit.textContent =
+                "Reply";
+        }
+    }
+}
+
+
+function bindCommentForm() {
+
+    dom.detailCommentForm?.addEventListener(
+        "submit",
+        async event => {
+
+            event.preventDefault();
+
+            await submitComment();
+        }
+    );
+}
+
+
     openModal(
         dom.detailModal
     );
@@ -1165,6 +1594,7 @@ async function initialize() {
     bindLiveOptions();
     bindCharacterCounter();
     bindKeyboardShortcuts();
+    bindCommentForm();
 
     renderInitialTree();
 

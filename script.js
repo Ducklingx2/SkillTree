@@ -1571,7 +1571,7 @@ function bindCommentForm() {
     openModal(
         dom.detailModal
     );
-}
+
 document.addEventListener(
     "DOMContentLoaded",
     initialize

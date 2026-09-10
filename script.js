@@ -2261,7 +2261,6 @@ async function handleCreatePost(event) {
 
 
     if (state.submitting) {
-
         return;
     }
 
@@ -2418,9 +2417,6 @@ async function handleCreatePost(event) {
 
 
     /*
-        NOTICE:
-        There is NO uid here.
-
         The backend gets the user ID from
         the verified Supabase access token.
     */
@@ -2446,7 +2442,9 @@ async function handleCreatePost(event) {
         true;
 
 
-    setSubmitLoading(true);
+    setSubmitLoading(
+        true
+    );
 
 
     try {
@@ -2470,36 +2468,42 @@ async function handleCreatePost(event) {
             );
 
 
+        /*
+            If the backend rejects the request,
+            read the response as text so we can see
+            the actual server error.
+        */
+
         if (!response.ok) {
 
-            let message =
-                `Server returned ${response.status}`;
+            const errorText =
+                await response.text();
 
 
-            try {
+            console.error(
+                "POST /api/posts failed:",
+                {
+                    status:
+                        response.status,
 
-                const errorData =
-                    await response.json();
+                    statusText:
+                        response.statusText,
 
-
-                if (
-                    errorData?.error
-                ) {
-
-                    message =
-                        errorData.error;
+                    body:
+                        errorText
                 }
-
-            } catch {
-                // Server may not have returned JSON.
-            }
+            );
 
 
             throw new Error(
-                message
+                `API ${response.status}: ${errorText || response.statusText}`
             );
         }
 
+
+        /*
+            Successful response.
+        */
 
         const created =
             await response.json();
@@ -2569,81 +2573,17 @@ async function handleCreatePost(event) {
             "!"
         );
 
+
     } finally {
 
         state.submitting =
             false;
 
+
         setSubmitLoading(
             false
         );
     }
-}
-
-
-/* =========================================================
-   PROFILE FORM
-========================================================= */
-
-function bindProfileForm() {
-
-    dom.profileForm?.addEventListener(
-        "submit",
-        async event => {
-
-            event.preventDefault();
-
-
-            const name =
-                dom.profileNameInput
-                    .value
-                    .trim();
-
-
-            if (!name) {
-
-                showToast(
-                    "Enter a name first.",
-                    "!"
-                );
-
-                return;
-            }
-
-
-            try {
-
-                await setUserName(
-                    name
-                );
-
-
-                closeModal(
-                    dom.profileModal
-                );
-
-
-                showToast(
-                    "Profile updated.",
-                    "✓"
-                );
-
-            } catch (error) {
-
-                console.error(
-                    "Profile update failed:",
-                    error
-                );
-
-
-                showToast(
-                    error.message ||
-                    "Couldn't update profile.",
-                    "!"
-                );
-            }
-        }
-    );
 }
 
 

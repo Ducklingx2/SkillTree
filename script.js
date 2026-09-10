@@ -211,7 +211,11 @@ const dom = {
         document.getElementById("detailCommentInput"),
 
     detailCommentSubmit:
-        document.getElementById("detailCommentSubmit")
+        document.getElementById("detailCommentSubmit"),
+
+    detailCommentCount:
+        document.getElementById("detailCommentCount")
+
 };
 
 
@@ -324,6 +328,68 @@ function bindAuthForms() {
         }
     });
 }
+
+function bindProfileForm() {
+
+    dom.profileForm?.addEventListener(
+        "submit",
+        async event => {
+
+            event.preventDefault();
+
+
+            const name =
+                dom.profileNameInput
+                    .value
+                    .trim();
+
+
+            if (!name) {
+
+                showToast(
+                    "Enter a name first.",
+                    "!"
+                );
+
+                return;
+            }
+
+
+            try {
+
+                await setUserName(
+                    name
+                );
+
+
+                closeModal(
+                    dom.profileModal
+                );
+
+
+                showToast(
+                    "Profile updated.",
+                    "✓"
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "Profile update failed:",
+                    error
+                );
+
+
+                showToast(
+                    error.message ||
+                    "Couldn't update profile.",
+                    "!"
+                );
+            }
+        }
+    );
+}
+
 function bindAuthTabs() {
     const signInTab = document.getElementById("signInTab");
     const signUpTab = document.getElementById("signUpTab");
@@ -1572,9 +1638,6 @@ function bindCommentForm() {
 }
 
 
-    openModal(
-        dom.detailModal
-    );
 
 document.addEventListener(
     "DOMContentLoaded",

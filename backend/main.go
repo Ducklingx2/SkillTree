@@ -17,27 +17,12 @@ const allowedOrigin = "https://ducklingx2.github.io"
 // GitHub Pages frontend.
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		origin := r.Header.Get("Origin")
+		w.Header().Set("Access-Control-Allow-Origin", "https://ducklingx2.github.io")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Access-Control-Max-Age", "86400")
 
-		if origin == allowedOrigin {
-			w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
-			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-			w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-			w.Header().Set("Access-Control-Max-Age", "86400")
-			w.Header().Set("Vary", "Origin")
-		}
-
-		// Handle browser CORS preflight requests.
 		if r.Method == http.MethodOptions {
-			if origin != allowedOrigin {
-				http.Error(
-					w,
-					"CORS origin not allowed",
-					http.StatusForbidden,
-				)
-				return
-			}
-
 			w.WriteHeader(http.StatusNoContent)
 			return
 		}

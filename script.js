@@ -51,7 +51,9 @@ const state = {
 
     submitting: false,
 
-    selectedImage: "",
+    selectedImage: null,
+
+    imageData: "",
 
     activePost: null,
 
@@ -516,20 +518,22 @@ function bindImageUpload() {
 
         state.selectedImage = file;
 
-        const reader = new FileReader();
+       const reader = new FileReader();
 
-        reader.onload = (event) => {
-            uploadBox.innerHTML = `
-                <img
-                    src="${event.target.result}"
-                    alt="Selected image"
-                    class="upload-preview"
-                >
-                <span>Change image</span>
-            `;
-        };
+reader.onload = (event) => {
+    state.imageData = event.target.result;
 
-        reader.readAsDataURL(file);
+    uploadBox.innerHTML = `
+        <img
+            src="${event.target.result}"
+            alt="Selected image"
+            class="upload-preview"
+        >
+        <span>Change image</span>
+    `;
+};
+
+reader.readAsDataURL(file);
     });
 
     uploadBox.addEventListener("dragover", (event) => {
@@ -2462,7 +2466,7 @@ async function handleCreatePost(event) {
        
     description,
        
-    imageUrl: "",
+    imageUrl: state.imageData || "",
        
     meetingUrl: meetingUrl || ""
 };

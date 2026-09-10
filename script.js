@@ -2485,6 +2485,7 @@ async function handleCreatePost(event) {
     */
 
     const payload = {
+    uid: user.id,
        
     authorName: getUserName(),
        

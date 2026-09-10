@@ -1484,7 +1484,6 @@ function renderComments() {
 
 
 async function submitComment() {
-
     if (
         state.commentSubmitting ||
         !state.activePost
@@ -1493,81 +1492,61 @@ async function submitComment() {
     }
 
     if (!state.user) {
-
         showToast(
             "Sign in to reply.",
             "!"
         );
-
         return;
     }
 
     const content =
-        dom.detailCommentInput?.value
-            .trim();
+        dom.detailCommentInput?.value.trim();
 
     if (!content) {
-
         showToast(
             "Write something first.",
             "!"
         );
-
         return;
     }
 
-    state.commentSubmitting =
-        true;
+    state.commentSubmitting = true;
 
     if (dom.detailCommentSubmit) {
-        dom.detailCommentSubmit.disabled =
-            true;
-
-        dom.detailCommentSubmit.textContent =
-            "Replying...";
+        dom.detailCommentSubmit.disabled = true;
+        dom.detailCommentSubmit.textContent = "Replying...";
     }
 
     try {
+        const payload = {
+            authorId: state.user.id,
+            authorName: getUserName(),
+            content,
+            parentCommentId: null
+        };
 
-        const response =
-            await authenticatedFetch(
-                `${API_URL}/api/posts/${state.activePost.id}/comments`,
-                {
-                    method: "POST",
-
-                    headers: {
-                        "Accept":
-                            "application/json"
-                    },
-
-                    body:
-                        JSON.stringify({
-                            authorName:
-                                getUserName(),
-
-                            content,
-
-                            parentCommentId:
-                                null
-                        })
-                }
-            );
+        const response = await authenticatedFetch(
+            `${API_URL}/api/posts/${state.activePost.id}/comments`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            }
+        );
 
         if (!response.ok) {
-
             let message =
                 `Server returned ${response.status}`;
 
             try {
-
                 const errorData =
                     await response.json();
 
                 if (errorData?.error) {
-                    message =
-                        errorData.error;
+                    message = errorData.error;
                 }
-
             } catch {
                 // Response wasn't JSON.
             }
@@ -1578,13 +1557,10 @@ async function submitComment() {
         const created =
             await response.json();
 
-        state.comments.push(
-            created
-        );
+        state.comments.push(created);
 
         if (dom.detailCommentInput) {
-            dom.detailCommentInput.value =
-                "";
+            dom.detailCommentInput.value = "";
         }
 
         renderComments();
@@ -1595,7 +1571,6 @@ async function submitComment() {
         );
 
     } catch (error) {
-
         console.error(
             "Failed to create comment:",
             error
@@ -1608,17 +1583,11 @@ async function submitComment() {
         );
 
     } finally {
-
-        state.commentSubmitting =
-            false;
+        state.commentSubmitting = false;
 
         if (dom.detailCommentSubmit) {
-
-            dom.detailCommentSubmit.disabled =
-                false;
-
-            dom.detailCommentSubmit.textContent =
-                "Reply";
+            dom.detailCommentSubmit.disabled = false;
+            dom.detailCommentSubmit.textContent = "Reply";
         }
     }
 }

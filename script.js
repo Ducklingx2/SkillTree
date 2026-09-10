@@ -23,7 +23,7 @@ const supabaseClient =
     );
 
 const API_URL =
-    "https://skilltree-9quj.onrender.com";
+    "https://skilltree-aej2.onrender.com";
 
 const POSTS_ENDPOINT =
     `${API_URL}/api/posts`;

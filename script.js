@@ -2492,7 +2492,7 @@ async function handleCreatePost(event) {
        
     description,
        
-    imageUrl: state.selectedImage || "",
+    imageUrl: "",
        
     meetingUrl: meetingUrl || ""
 };

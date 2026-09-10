@@ -2485,22 +2485,24 @@ async function handleCreatePost(event) {
     */
 
     const payload = {
+       
+    authorName: getUserName(),
+       
+    skill,
+       
+    description,
+       
+    imageUrl: state.selectedImage || "",
+       
+    meetingUrl: meetingUrl || ""
+};
 
-        authorName:
-            getUserName(),
+console.log("POST PAYLOAD:", payload);
+console.log("POST JSON:", JSON.stringify(payload));
 
-        skill,
+state.submitting = true;
 
-        description,
-
-        imageUrl:
-            state.selectedImage || "",
-
-        meetingUrl:
-            meetingUrl || ""
-    };
-
-
+      
     state.submitting =
         true;
 

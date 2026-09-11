@@ -1,8 +1,6 @@
 package main
 
 import (
-	"context"
-	_ "embed"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -13,24 +11,10 @@ import (
 	"skilltree-backend/handlers"
 )
 
-//go:embed database/replyschema.sql
-var replySchemaSQL string
-
 const allowedOrigin = "https://ducklingx2.github.io"
 
-// corsMiddleware handles requests coming from the SkillTree
-// GitHub Pages frontend.
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-		log.Printf(
-			"CORS: method=%s origin=%q request-method=%q request-headers=%q",
-			r.Method,
-			r.Header.Get("Origin"),
-			r.Header.Get("Access-Control-Request-Method"),
-			r.Header.Get("Access-Control-Request-Headers"),
-		)
-
 		w.Header().Set(
 			"Access-Control-Allow-Origin",
 			allowedOrigin,
@@ -51,6 +35,11 @@ func corsMiddleware(next http.Handler) http.Handler {
 			"86400",
 		)
 
+		w.Header().Set(
+			"Vary",
+			"Origin",
+		)
+
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)
 			return
@@ -60,39 +49,19 @@ func corsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// healthHandler is used to verify that the API is alive.
 func healthHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(
-			w,
-			"Method not allowed",
-			http.StatusMethodNotAllowed,
-		)
-		return
-	}
-
 	w.Header().Set("Content-Type", "application/json")
 
-	response := map[string]string{
-		"service": "Skilltree API",
-		"status":  "online",
-	}
-
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		log.Printf(
-			"failed to write health response: %v",
-			err,
-		)
-	}
+	json.NewEncoder(w).Encode(map[string]string{
+		"status":  "ok",
+		"service": "skilltree-api",
+	})
 }
 
 func main() {
 	log.Println("Starting Skilltree API...")
 
-	// --------------------------------------------------
-	// DATABASE
-	// --------------------------------------------------
-
+	// Connect to PostgreSQL.
 	pool, err := database.Connect()
 	if err != nil {
 		log.Fatalf(
@@ -105,82 +74,74 @@ func main() {
 
 	log.Println("Database connection established.")
 
-	// --------------------------------------------------
-	// DATABASE SCHEMA
-	// --------------------------------------------------
-
-	_, err = pool.Exec(
-		context.Background(),
-		replySchemaSQL,
-	)
-
-	if err != nil {
-		log.Fatalf(
-			"failed to initialize reply schema: %v",
-			err,
-		)
-	}
-
-	log.Println("Reply schema initialized successfully.")
-
-	// --------------------------------------------------
-	// HANDLERS
-	// --------------------------------------------------
-
+	// Create handlers.
 	postHandler := handlers.NewPostHandler(pool)
 	commentHandler := handlers.NewCommentHandler(pool)
 
-	// --------------------------------------------------
-	// ROUTES
-	// --------------------------------------------------
-
+	// Create router.
 	mux := http.NewServeMux()
 
-	// Health check
-	mux.HandleFunc("/", healthHandler)
+	// Health check.
+	mux.HandleFunc(
+		"/",
+		healthHandler,
+	)
 
-	// Posts API
-	// Posts API
-mux.HandleFunc(
-    "/api/posts",
-    func(w http.ResponseWriter, r *http.Request) {
-        switch r.Method {
-        case http.MethodGet:
-            postHandler.GetPosts(w, r)
+	// -------------------------
+	// POSTS
+	// -------------------------
 
-        case http.MethodPost:
-            postHandler.CreatePost(w, r)
+	mux.HandleFunc(
+		"/api/posts",
+		func(w http.ResponseWriter, r *http.Request) {
+			switch r.Method {
+			case http.MethodGet:
+				postHandler.GetPosts(w, r)
 
-        default:
-            http.Error(
-                w,
-                "Method not allowed",
-                http.StatusMethodNotAllowed,
-            )
-        }
-    },
-)
+			case http.MethodPost:
+				postHandler.CreatePost(w, r)
 
-// Delete post
-mux.HandleFunc(
-    "DELETE /api/posts/{postId}",
-    postHandler.DeletePost,
-)
+			default:
+				http.Error(
+					w,
+					"Method not allowed",
+					http.StatusMethodNotAllowed,
+				)
+			}
+		},
+	)
 
-	// Comments API
+	// Delete a post.
+	mux.HandleFunc(
+		"DELETE /api/posts/{postId}",
+		postHandler.DeletePost,
+	)
+
+	// -------------------------
+	// COMMENTS
+	// -------------------------
+
+	// Get comments for a post.
 	mux.HandleFunc(
 		"GET /api/posts/{postId}/comments",
 		commentHandler.GetComments,
 	)
 
+	// Create a comment.
 	mux.HandleFunc(
 		"POST /api/posts/{postId}/comments",
 		commentHandler.CreateComment,
 	)
 
-	// --------------------------------------------------
-	// PORT
-	// --------------------------------------------------
+	// Delete a comment.
+	mux.HandleFunc(
+		"DELETE /api/posts/{postId}/comments/{commentId}",
+		commentHandler.DeleteComment,
+	)
+
+	// -------------------------
+	// SERVER
+	// -------------------------
 
 	port := os.Getenv("PORT")
 
@@ -188,13 +149,10 @@ mux.HandleFunc(
 		port = "10000"
 	}
 
-	// --------------------------------------------------
-	// SERVER
-	// --------------------------------------------------
-
 	server := &http.Server{
-		Addr:              "0.0.0.0:" + port,
-		Handler:           corsMiddleware(mux),
+		Addr: "0.0.0.0:" + port,
+
+		Handler: corsMiddleware(mux),
 
 		ReadHeaderTimeout: 10 * time.Second,
 		ReadTimeout:       15 * time.Second,
@@ -203,7 +161,7 @@ mux.HandleFunc(
 	}
 
 	log.Printf(
-		"Skilltree API running on port %s",
+		"Skilltree API running on 0.0.0.0:%s",
 		port,
 	)
 

@@ -229,3 +229,31 @@ func writeJSON(
 		log.Printf("writeJSON: failed to encode response: %v", err)
 	}
 }
+
+func (h *PostHandler) DeletePost(w http.ResponseWriter, r *http.Request) {
+	postIDString := r.PathValue("postId")
+
+	postID, err := strconv.ParseInt(postIDString, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		return
+	}
+
+	commandTag, err := h.DB.Exec(
+		r.Context(),
+		`DELETE FROM posts WHERE id = $1`,
+		postID,
+	)
+
+	if err != nil {
+		http.Error(w, "Failed to delete post", http.StatusInternalServerError)
+		return
+	}
+
+	if commandTag.RowsAffected() == 0 {
+		http.Error(w, "Post not found", http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}

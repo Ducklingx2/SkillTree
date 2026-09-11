@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	_ "embed"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -10,6 +12,9 @@ import (
 	"skilltree-backend/database"
 	"skilltree-backend/handlers"
 )
+
+//go:embed comments_handler.sql
+var commentsTableSQL string
 
 const allowedOrigin = "https://ducklingx2.github.io"
 
@@ -26,10 +31,25 @@ func corsMiddleware(next http.Handler) http.Handler {
 			r.Header.Get("Access-Control-Request-Headers"),
 		)
 
-		w.Header().Set("Access-Control-Allow-Origin", "https://ducklingx2.github.io")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		w.Header().Set("Access-Control-Max-Age", "86400")
+		w.Header().Set(
+			"Access-Control-Allow-Origin",
+			allowedOrigin,
+		)
+
+		w.Header().Set(
+			"Access-Control-Allow-Methods",
+			"GET, POST, PUT, DELETE, OPTIONS",
+		)
+
+		w.Header().Set(
+			"Access-Control-Allow-Headers",
+			"Content-Type, Authorization",
+		)
+
+		w.Header().Set(
+			"Access-Control-Max-Age",
+			"86400",
+		)
 
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)
@@ -59,7 +79,10 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		log.Printf("failed to write health response: %v", err)
+		log.Printf(
+			"failed to write health response: %v",
+			err,
+		)
 	}
 }
 
@@ -72,58 +95,82 @@ func main() {
 
 	pool, err := database.Connect()
 	if err != nil {
-		log.Fatalf("database connection failed: %v", err)
+		log.Fatalf(
+			"database connection failed: %v",
+			err,
+		)
 	}
 
 	defer pool.Close()
 
 	log.Println("Database connection established.")
 
-// --------------------------------------------------
-// HANDLERS
-// --------------------------------------------------
+	// --------------------------------------------------
+	// DATABASE INITIALIZATION
+	// --------------------------------------------------
 
-postHandler := handlers.NewPostHandler(pool)
-commentHandler := handlers.NewCommentHandler(pool)
+	_, err = pool.Exec(
+		context.Background(),
+		commentsTableSQL,
+	)
 
-// --------------------------------------------------
-// ROUTES
-// --------------------------------------------------
-
-mux := http.NewServeMux()
-
-// Health check
-mux.HandleFunc("/", healthHandler)
-
-// Posts API
-mux.HandleFunc("/api/posts", func(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		postHandler.GetPosts(w, r)
-
-	case http.MethodPost:
-		postHandler.CreatePost(w, r)
-
-	default:
-		http.Error(
-			w,
-			"Method not allowed",
-			http.StatusMethodNotAllowed,
+	if err != nil {
+		log.Fatalf(
+			"failed to initialize comments table: %v",
+			err,
 		)
 	}
-})
 
-// Comments API
-mux.HandleFunc(
-	"GET /api/posts/{postId}/comments",
-	commentHandler.GetComments,
-)
+	log.Println("Comments database initialized.")
 
-mux.HandleFunc(
-	"POST /api/posts/{postId}/comments",
-	commentHandler.CreateComment,
-)
-	
+	// --------------------------------------------------
+	// HANDLERS
+	// --------------------------------------------------
+
+	postHandler := handlers.NewPostHandler(pool)
+	commentHandler := handlers.NewCommentHandler(pool)
+
+	// --------------------------------------------------
+	// ROUTES
+	// --------------------------------------------------
+
+	mux := http.NewServeMux()
+
+	// Health check
+	mux.HandleFunc("/", healthHandler)
+
+	// Posts API
+	mux.HandleFunc(
+		"/api/posts",
+		func(w http.ResponseWriter, r *http.Request) {
+			switch r.Method {
+			case http.MethodGet:
+				postHandler.GetPosts(w, r)
+
+			case http.MethodPost:
+				postHandler.CreatePost(w, r)
+
+			default:
+				http.Error(
+					w,
+					"Method not allowed",
+					http.StatusMethodNotAllowed,
+				)
+			}
+		},
+	)
+
+	// Comments API
+	mux.HandleFunc(
+		"GET /api/posts/{postId}/comments",
+		commentHandler.GetComments,
+	)
+
+	mux.HandleFunc(
+		"POST /api/posts/{postId}/comments",
+		commentHandler.CreateComment,
+	)
+
 	// --------------------------------------------------
 	// PORT
 	// --------------------------------------------------
@@ -141,16 +188,23 @@ mux.HandleFunc(
 	server := &http.Server{
 		Addr:              "0.0.0.0:" + port,
 		Handler:           corsMiddleware(mux),
+
 		ReadHeaderTimeout: 10 * time.Second,
 		ReadTimeout:       15 * time.Second,
 		WriteTimeout:      30 * time.Second,
 		IdleTimeout:       60 * time.Second,
 	}
 
-	log.Printf("Skilltree API running on port %s", port)
+	log.Printf(
+		"Skilltree API running on port %s",
+		port,
+	)
 
 	if err := server.ListenAndServe(); err != nil &&
 		err != http.ErrServerClosed {
-		log.Fatalf("server failed: %v", err)
+		log.Fatalf(
+			"server failed: %v",
+			err,
+		)
 	}
 }

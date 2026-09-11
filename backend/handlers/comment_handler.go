@@ -271,3 +271,53 @@ func (h *CommentHandler) CreateComment(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(comment)
 }
+
+func (h *CommentHandler) DeleteComment(w http.ResponseWriter, r *http.Request) {
+	commentIDString := r.PathValue("commentId")
+
+	commentID, err := strconv.ParseInt(commentIDString, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid comment ID", http.StatusBadRequest)
+		return
+	}
+
+	// TODO: replace this with your actual authenticated
+	// Supabase user ID once we hook into your auth middleware.
+	userID := r.Header.Get("X-User-ID")
+
+	if userID == "" {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	commandTag, err := h.DB.Exec(
+		r.Context(),
+		`
+		DELETE FROM comments
+		WHERE id = $1
+		AND author_id = $2
+		`,
+		commentID,
+		userID,
+	)
+
+	if err != nil {
+		http.Error(
+			w,
+			"Failed to delete reply",
+			http.StatusInternalServerError,
+		)
+		return
+	}
+
+	if commandTag.RowsAffected() == 0 {
+		http.Error(
+			w,
+			"Reply not found or you do not own it",
+			http.StatusNotFound,
+		)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}

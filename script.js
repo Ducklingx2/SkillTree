@@ -2577,6 +2577,7 @@ function normalizePost(post) {
 
         authorId:
             String(
+                post.uid ??
                 post.authorId ??
                 post.user_id ??
                 ""

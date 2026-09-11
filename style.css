@@ -4079,3 +4079,24 @@ body.modal-open {
         display: none;
     }
 }
+
+/* =========================================================
+   LIKES
+========================================================= */
+
+
+.post-like-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.like-icon {
+    font-size: 17px;
+    line-height: 1;
+}
+
+.post-like-action:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}

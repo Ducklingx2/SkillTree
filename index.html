@@ -1,112 +1,1375 @@
-<div class="detail-comments">
+<!DOCTYPE html>
+<html lang="en">
 
-    <!-- Replies header -->
-    <div class="detail-comments-header">
+<head>
+    <meta charset="UTF-8">
 
-        <div class="comments-heading">
-            <span class="comments-eyebrow">
-                COMMUNITY
-            </span>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-            <h3>
-                Replies
-            </h3>
+    <meta
+        name="description"
+        content="Skilltree — learn, teach, and share what you know."
+    >
 
-            <p class="comments-subtitle">
-                Share ideas, ask questions, and help each other learn.
-            </p>
-        </div>
+    <title>Skilltree</title>
 
-        <span
-            id="detailCommentCount"
-            class="comment-count"
-            aria-label="Number of replies"
-        >
-            0
-        </span>
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
 
-    </div>
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
 
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
 
-    <!-- Replies list -->
-    <div
-        id="detailComments"
-        class="comments-list"
-        aria-live="polite"
-        aria-label="Replies to this post"
-    ></div>
-
-
-    <!-- Reply composer -->
-    <div class="comment-composer">
-
-        <!-- Current user's avatar -->
-        <div
-            class="composer-avatar"
-            aria-hidden="true"
-        >
-            ?
-        </div>
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+</head>
 
 
-        <form
-            id="detailCommentForm"
-            class="comment-form"
-            aria-label="Write a reply"
-        >
+<body>
 
-            <div class="comment-input-wrap">
+    <!-- =========================================================
+         NAVIGATION
+    ========================================================== -->
 
-                <label
-                    for="detailCommentInput"
-                    class="sr-only"
+    <header class="site-header">
+
+        <nav class="navbar">
+
+            <a
+                href="#home"
+                class="brand"
+                aria-label="Skilltree home"
+            >
+                <span class="brand-mark">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
+
+                <span class="brand-name">
+                    Skilltree
+                </span>
+            </a>
+
+
+            <div class="nav-links">
+
+                <a
+                    href="#home"
+                    class="nav-link active"
                 >
-                    Write a reply
-                </label>
+                    Home
+                </a>
 
-                <textarea
-                    id="detailCommentInput"
-                    name="comment"
-                    rows="3"
-                    maxlength="2000"
-                    placeholder="Share something useful..."
-                    aria-describedby="commentHint"
-                    required
-                ></textarea>
+                <a
+                    href="#discover"
+                    class="nav-link"
+                >
+                    Discover
+                </a>
+
+                <a
+                    href="#tree"
+                    class="nav-link"
+                >
+                    My Tree
+                </a>
+
+            </div>
 
 
-                <div class="comment-input-footer">
+            <div class="nav-actions">
+
+                <button
+                    id="notificationButton"
+                    type="button"
+                    class="icon-button"
+                    aria-label="Notifications"
+                >
+                    <span aria-hidden="true">◌</span>
+                </button>
+
+
+                <button
+                    id="profileButton"
+                    type="button"
+                    class="profile-button"
+                    aria-label="Profile"
+                >
 
                     <span
-                        id="commentHint"
-                        class="comment-hint"
+                        id="navAvatar"
+                        class="nav-avatar"
                     >
-                        Be useful. Be human.
+                        ?
                     </span>
 
-                    <button
-                        id="detailCommentSubmit"
-                        type="submit"
-                        class="comment-submit"
+                    <span
+                        id="navProfileName"
+                        class="nav-profile-name"
                     >
+                        Log in
+                    </span>
+
+                </button>
+
+            </div>
+
+        </nav>
+
+    </header>
+
+
+
+    <main>
+
+        <!-- =====================================================
+             HERO
+        ====================================================== -->
+
+        <section
+            id="home"
+            class="hero-section"
+        >
+
+            <div class="hero-content">
+
+                <span class="section-eyebrow">
+                    LEARN • TEACH • GROW
+                </span>
+
+                <h1>
+                    Everyone knows
+                    <span>something.</span>
+                </h1>
+
+                <p class="hero-description">
+                    Skilltree is where people share what they know,
+                    learn from each other, and build something worth
+                    remembering.
+                </p>
+
+
+                <div class="hero-actions">
+
+                    <button
+                        id="heroCreateButton"
+                        type="button"
+                        class="primary-button"
+                    >
+                        <span>Create a skill</span>
+                        <span aria-hidden="true">↗</span>
+                    </button>
+
+                    <a
+                        href="#discover"
+                        class="secondary-button"
+                    >
+                        Explore skills
+                        <span aria-hidden="true">↓</span>
+                    </a>
+
+                </div>
+
+
+                <div class="hero-stats">
+
+                    <div class="hero-stat">
+
+                        <strong id="heroPostCount">
+                            0
+                        </strong>
+
                         <span>
-                            Reply
+                            Skills shared
                         </span>
 
-                        <span
-                            class="comment-submit-icon"
-                            aria-hidden="true"
-                        >
-                            ↗
+                    </div>
+
+
+                    <div class="hero-stat">
+
+                        <strong id="heroTeacherCount">
+                            0
+                        </strong>
+
+                        <span>
+                            Teachers
                         </span>
+
+                    </div>
+
+
+                    <div class="hero-stat">
+
+                        <strong id="heroSkillCount">
+                            0
+                        </strong>
+
+                        <span>
+                            Growing skills
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Decorative tree -->
+
+            <div
+                class="hero-visual"
+                aria-hidden="true"
+            >
+
+                <div class="hero-tree">
+
+                    <span class="tree-line tree-line-1"></span>
+                    <span class="tree-line tree-line-2"></span>
+                    <span class="tree-line tree-line-3"></span>
+                    <span class="tree-line tree-line-4"></span>
+
+                    <span class="tree-node tree-node-main"></span>
+                    <span class="tree-node tree-node-a"></span>
+                    <span class="tree-node tree-node-b"></span>
+                    <span class="tree-node tree-node-c"></span>
+                    <span class="tree-node tree-node-d"></span>
+                    <span class="tree-node tree-node-e"></span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================================
+             DISCOVER
+        ====================================================== -->
+
+        <section
+            id="discover"
+            class="discover-section"
+        >
+
+            <div class="section-heading">
+
+                <div>
+
+                    <span class="section-eyebrow">
+                        DISCOVER
+                    </span>
+
+                    <h2>
+                        Find something
+                        worth learning.
+                    </h2>
+
+                </div>
+
+                <p>
+                    Explore things people are actually teaching.
+                    No rigid categories. No prescribed paths.
+                </p>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================================
+             COMMUNITY / POSTS
+        ====================================================== -->
+
+        <section
+            id="community"
+            class="community-section"
+        >
+
+            <div class="community-header">
+
+                <div>
+
+                    <span class="section-eyebrow">
+                        THE COMMUNITY
+                    </span>
+
+                    <h2>
+                        What people are teaching
+                    </h2>
+
+                </div>
+
+
+                <button
+                    id="communityCreateButton"
+                    type="button"
+                    class="primary-button"
+                >
+                    <span>Share a skill</span>
+                    <span aria-hidden="true">↗</span>
+                </button>
+
+            </div>
+
+
+            <!-- Search -->
+
+            <div class="community-tools">
+
+                <label
+                    class="search-box"
+                    for="searchInput"
+                >
+
+                    <span
+                        class="search-icon"
+                        aria-hidden="true"
+                    >
+                        ⌕
+                    </span>
+
+                    <input
+                        id="searchInput"
+                        type="search"
+                        placeholder="Search skills, teachers, ideas..."
+                        autocomplete="off"
+                    >
+
+                </label>
+
+
+                <div
+                    class="sort-controls"
+                    aria-label="Sort posts"
+                >
+
+                    <button
+                        type="button"
+                        class="sort-button active"
+                        data-sort="recent"
+                    >
+                        Recent
+                    </button>
+
+                    <button
+                        type="button"
+                        class="sort-button"
+                        data-sort="skill"
+                    >
+                        Skill
+                    </button>
+
+                    <button
+                        type="button"
+                        class="sort-button"
+                        data-sort="teacher"
+                    >
+                        Teacher
                     </button>
 
                 </div>
 
             </div>
 
-        </form>
+
+            <!-- Post grid -->
+
+            <div
+                id="postGrid"
+                class="post-grid"
+            ></div>
+
+        </section>
+
+
+
+        <!-- =====================================================
+             MY TREE
+        ====================================================== -->
+
+        <section
+            id="tree"
+            class="tree-section"
+        >
+
+            <div class="tree-section-header">
+
+                <div>
+
+                    <span class="section-eyebrow">
+                        YOUR PROGRESS
+                    </span>
+
+                    <h2>
+                        My Tree
+                    </h2>
+
+                    <p>
+                        Every skill you share becomes part
+                        of your own growing tree.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="userTree"
+                class="user-tree"
+            >
+
+                <div class="tree-empty">
+
+                    <div class="tree-empty-icon">
+                        +
+                    </div>
+
+                    <h3>
+                        Your tree is waiting.
+                    </h3>
+
+                    <p>
+                        Share your first skill and start
+                        growing it.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================================
+             FINAL CTA
+        ====================================================== -->
+
+        <section class="cta-section">
+
+            <div class="cta-content">
+
+                <span class="section-eyebrow">
+                    YOUR KNOWLEDGE MATTERS
+                </span>
+
+                <h2>
+                    Teach something
+                    you know.
+                </h2>
+
+                <p>
+                    Someone out there is trying to learn exactly
+                    what you already know.
+                </p>
+
+                <button
+                    id="ctaCreateButton"
+                    type="button"
+                    class="primary-button"
+                >
+                    Share your skill
+                    <span aria-hidden="true">↗</span>
+                </button>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+
+    <!-- =========================================================
+         AUTH MODAL
+    ========================================================== -->
+
+    <div
+        id="authModal"
+        class="modal-overlay"
+        aria-hidden="true"
+    >
+
+        <div
+            class="modal auth-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="authModalTitle"
+        >
+
+            <button
+                type="button"
+                class="modal-close"
+                data-close-modal="authModal"
+                aria-label="Close"
+            >
+                ×
+            </button>
+
+
+            <div class="modal-header">
+
+                <span class="section-eyebrow">
+                    WELCOME
+                </span>
+
+                <h2 id="authModalTitle">
+                    Welcome to Skilltree.
+                </h2>
+
+                <p>
+                    Sign in to keep learning and sharing.
+                </p>
+
+            </div>
+
+
+            <!-- Auth tabs -->
+
+            <div class="auth-tabs">
+
+                <button
+                    id="signInTab"
+                    type="button"
+                    class="auth-tab active"
+                >
+                    Sign in
+                </button>
+
+                <button
+                    id="signUpTab"
+                    type="button"
+                    class="auth-tab"
+                >
+                    Create account
+                </button>
+
+            </div>
+
+
+            <!-- Sign in -->
+
+            <form
+                id="signInForm"
+                class="auth-form"
+            >
+
+                <div class="form-field">
+
+                    <label for="signInEmail">
+                        Email
+                    </label>
+
+                    <input
+                        id="signInEmail"
+                        type="email"
+                        autocomplete="email"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-field">
+
+                    <label for="signInPassword">
+                        Password
+                    </label>
+
+                    <input
+                        id="signInPassword"
+                        type="password"
+                        autocomplete="current-password"
+                        required
+                    >
+
+                </div>
+
+
+                <button
+                    id="signInButton"
+                    type="submit"
+                    class="primary-button form-submit"
+                >
+                    Sign in
+                </button>
+
+            </form>
+
+
+            <!-- Sign up -->
+
+            <form
+                id="signUpForm"
+                class="auth-form"
+                hidden
+            >
+
+                <div class="form-field">
+
+                    <label for="signUpName">
+                        Username
+                    </label>
+
+                    <input
+                        id="signUpName"
+                        type="text"
+                        autocomplete="username"
+                        maxlength="50"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-field">
+
+                    <label for="signUpEmail">
+                        Email
+                    </label>
+
+                    <input
+                        id="signUpEmail"
+                        type="email"
+                        autocomplete="email"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-field">
+
+                    <label for="signUpPassword">
+                        Password
+                    </label>
+
+                    <input
+                        id="signUpPassword"
+                        type="password"
+                        autocomplete="new-password"
+                        minlength="6"
+                        required
+                    >
+
+                </div>
+
+
+                <button
+                    id="signUpButton"
+                    type="submit"
+                    class="primary-button form-submit"
+                >
+                    Create account
+                </button>
+
+            </form>
+
+        </div>
 
     </div>
 
-</div>
+
+
+    <!-- =========================================================
+         CREATE POST MODAL
+    ========================================================== -->
+
+    <div
+        id="createModal"
+        class="modal-overlay"
+        aria-hidden="true"
+    >
+
+        <div
+            class="modal create-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="createModalTitle"
+        >
+
+            <button
+                type="button"
+                class="modal-close"
+                data-close-modal="createModal"
+                aria-label="Close"
+            >
+                ×
+            </button>
+
+
+            <div class="modal-header">
+
+                <span class="section-eyebrow">
+                    SHARE KNOWLEDGE
+                </span>
+
+                <h2 id="createModalTitle">
+                    Teach something.
+                </h2>
+
+                <p>
+                    Give your skill a name and show people
+                    what you know.
+                </p>
+
+            </div>
+
+
+            <form id="createPostForm">
+
+                <!-- Author -->
+
+                <div class="form-field">
+
+                    <label for="authorName">
+                        Your name
+                    </label>
+
+                    <input
+                        id="authorName"
+                        type="text"
+                        readonly
+                    >
+
+                </div>
+
+
+                <!-- Skill -->
+
+                <div class="form-field">
+
+                    <label for="skillInput">
+                        Skill name
+                    </label>
+
+                    <input
+                        id="skillInput"
+                        type="text"
+                        maxlength="120"
+                        placeholder="What are you teaching?"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- Description -->
+
+                <div class="form-field">
+
+                    <div class="field-label-row">
+
+                        <label for="descriptionInput">
+                            Description
+                        </label>
+
+                        <span id="characterCount">
+                            0 / 2000
+                        </span>
+
+                    </div>
+
+                    <textarea
+                        id="descriptionInput"
+                        rows="6"
+                        maxlength="2000"
+                        placeholder="Explain what people will learn..."
+                        required
+                    ></textarea>
+
+                </div>
+
+
+                <!-- Image -->
+
+                <div class="form-field">
+
+                    <label>
+                        Skill image
+                    </label>
+
+
+                    <div
+                        id="uploadBox"
+                        class="upload-box"
+                    >
+
+                        <div class="upload-content">
+
+                            <span
+                                class="upload-icon"
+                                aria-hidden="true"
+                            >
+                                +
+                            </span>
+
+                            <strong>
+                                Add an image
+                            </strong>
+
+                            <span>
+                                Choose a picture that represents
+                                what you're teaching.
+                            </span>
+
+                        </div>
+
+
+                        <input
+                            id="imageInput"
+                            type="file"
+                            accept="image/*"
+                        >
+
+                        <img
+                            id="imagePreview"
+                            class="image-preview"
+                            alt="Selected skill image"
+                            hidden
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- Live teaching -->
+
+                <fieldset class="live-options">
+
+                    <legend>
+                        Live teaching
+                    </legend>
+
+                    <label class="radio-option">
+
+                        <input
+                            type="radio"
+                            name="liveOption"
+                            value="none"
+                            checked
+                        >
+
+                        <span>
+                            No live session
+                        </span>
+
+                    </label>
+
+
+                    <label class="radio-option">
+
+                        <input
+                            type="radio"
+                            name="liveOption"
+                            value="meeting"
+                        >
+
+                        <span>
+                            Add a meeting link
+                        </span>
+
+                    </label>
+
+                </fieldset>
+
+
+                <!-- Meeting -->
+
+                <div
+                    id="meetingLink"
+                    class="meeting-field"
+                    hidden
+                >
+
+                    <label for="meetingUrl">
+                        Meeting link
+                    </label>
+
+                    <input
+                        id="meetingUrl"
+                        type="url"
+                        placeholder="https://..."
+                    >
+
+                </div>
+
+
+                <button
+                    id="submitPostButton"
+                    type="submit"
+                    class="primary-button form-submit"
+                >
+                    Publish skill
+                    <span aria-hidden="true">↗</span>
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =========================================================
+         POST DETAIL MODAL
+    ========================================================== -->
+
+    <div
+        id="detailModal"
+        class="modal-overlay"
+        aria-hidden="true"
+    >
+
+        <div
+            class="modal detail-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="detailTitle"
+        >
+
+            <button
+                type="button"
+                class="modal-close"
+                data-close-modal="detailModal"
+                aria-label="Close"
+            >
+                ×
+            </button>
+
+
+            <!-- Post image -->
+
+            <div class="detail-image-wrap">
+
+                <img
+                    id="detailImage"
+                    class="detail-image"
+                    alt=""
+                    hidden
+                >
+
+            </div>
+
+
+            <!-- Post content -->
+
+            <div class="detail-content">
+
+                <div class="detail-post-meta">
+
+                    <span class="section-eyebrow">
+                        SKILL
+                    </span>
+
+                    <span
+                        id="detailAuthor"
+                        class="detail-author"
+                    >
+                        —
+                    </span>
+
+                </div>
+
+
+                <h2 id="detailTitle">
+                    —
+                </h2>
+
+
+                <p id="detailText">
+                    —
+                </p>
+
+
+                <!-- Live session -->
+
+                <div
+                    id="detailLive"
+                    class="detail-live"
+                    hidden
+                >
+
+                    <div class="detail-live-info">
+
+                        <span
+                            class="live-indicator"
+                            aria-hidden="true"
+                        ></span>
+
+                        <div>
+
+                            <strong>
+                                Live teaching available
+                            </strong>
+
+                            <span>
+                                Join the teacher's session.
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <a
+                        id="detailMeetingLink"
+                        href="#"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="secondary-button"
+                        hidden
+                    >
+                        Join session
+                        <span aria-hidden="true">↗</span>
+                    </a>
+
+                </div>
+
+
+                <!-- =================================================
+                     REPLIES
+                ================================================== -->
+
+                <div class="detail-comments">
+
+                    <div class="detail-comments-header">
+
+                        <div class="comments-heading">
+
+                            <span class="comments-eyebrow">
+                                COMMUNITY
+                            </span>
+
+                            <h3>
+                                Replies
+                            </h3>
+
+                            <p class="comments-subtitle">
+                                Share ideas, ask questions,
+                                and help each other learn.
+                            </p>
+
+                        </div>
+
+
+                        <span
+                            id="detailCommentCount"
+                            class="comment-count"
+                            aria-label="Number of replies"
+                        >
+                            0
+                        </span>
+
+                    </div>
+
+
+                    <!-- Replies generated by JavaScript -->
+
+                    <div
+                        id="detailComments"
+                        class="comments-list"
+                        aria-live="polite"
+                        aria-label="Replies to this post"
+                    ></div>
+
+
+                    <!-- Reply composer -->
+
+                    <div class="comment-composer">
+
+                        <div
+                            class="composer-avatar"
+                            aria-hidden="true"
+                        >
+                            ?
+                        </div>
+
+
+                        <form
+                            id="detailCommentForm"
+                            class="comment-form"
+                        >
+
+                            <div class="comment-input-wrap">
+
+                                <label
+                                    for="detailCommentInput"
+                                    class="sr-only"
+                                >
+                                    Write a reply
+                                </label>
+
+                                <textarea
+                                    id="detailCommentInput"
+                                    name="comment"
+                                    rows="3"
+                                    maxlength="2000"
+                                    placeholder="Share something useful..."
+                                    aria-describedby="commentHint"
+                                    required
+                                ></textarea>
+
+
+                                <div class="comment-input-footer">
+
+                                    <span
+                                        id="commentHint"
+                                        class="comment-hint"
+                                    >
+                                        Be useful. Be human.
+                                    </span>
+
+
+                                    <button
+                                        id="detailCommentSubmit"
+                                        type="submit"
+                                        class="comment-submit"
+                                    >
+
+                                        <span>
+                                            Reply
+                                        </span>
+
+                                        <span
+                                            class="comment-submit-icon"
+                                            aria-hidden="true"
+                                        >
+                                            ↗
+                                        </span>
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =========================================================
+         PROFILE MODAL
+    ========================================================== -->
+
+    <div
+        id="profileModal"
+        class="modal-overlay"
+        aria-hidden="true"
+    >
+
+        <div
+            class="modal profile-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="profileModalTitle"
+        >
+
+            <button
+                type="button"
+                class="modal-close"
+                data-close-modal="profileModal"
+                aria-label="Close"
+            >
+                ×
+            </button>
+
+
+            <div class="profile-header">
+
+                <div
+                    id="profileAvatar"
+                    class="profile-avatar"
+                >
+                    ?
+                </div>
+
+
+                <div>
+
+                    <span class="section-eyebrow">
+                        YOUR PROFILE
+                    </span>
+
+                    <h2 id="profileModalTitle">
+                        Profile
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <form id="profileForm">
+
+                <div class="form-field">
+
+                    <label for="profileName">
+                        Username
+                    </label>
+
+                    <input
+                        id="profileName"
+                        type="text"
+                        maxlength="50"
+                        required
+                    >
+
+                </div>
+
+
+                <button
+                    id="profileSaveButton"
+                    type="submit"
+                    class="primary-button form-submit"
+                >
+                    Save changes
+                </button>
+
+            </form>
+
+
+            <div class="profile-danger-zone">
+
+                <button
+                    id="signOutButton"
+                    type="button"
+                    class="danger-button"
+                >
+                    Sign out
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =========================================================
+         TOAST
+    ========================================================== -->
+
+    <div
+        id="toast"
+        class="toast"
+        role="status"
+        aria-live="polite"
+    >
+
+        <span
+            id="toastIcon"
+            class="toast-icon"
+            aria-hidden="true"
+        >
+            ✓
+        </span>
+
+        <span id="toastMessage">
+            Done.
+        </span>
+
+    </div>
+
+
+
+    <!-- =========================================================
+         FOOTER
+    ========================================================== -->
+
+    <footer class="site-footer">
+
+        <div class="footer-brand">
+
+            <span class="brand-mark">
+                <span></span>
+                <span></span>
+                <span></span>
+            </span>
+
+            <strong>
+                Skilltree
+            </strong>
+
+        </div>
+
+
+        <p>
+            Learn something. Teach something. Grow together.
+        </p>
+
+
+        <span class="footer-copy">
+            © 2026 Skilltree
+        </span>
+
+    </footer>
+
+
+
+    <!-- =========================================================
+         ACCESSIBILITY HELPER
+    ========================================================== -->
+
+    <style>
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+    </style>
+
+
+    <!-- =========================================================
+         SUPABASE
+    ========================================================== -->
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script
+        src="script.js"
+        defer
+    ></script>
+
+</body>
+
+</html>

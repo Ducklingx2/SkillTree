@@ -13,8 +13,8 @@ import (
 	"skilltree-backend/handlers"
 )
 
-//go:embed comments_handler.sql
-var commentsTableSQL string
+//go:embed database/replyschema.sql
+var replySchemaSQL string
 
 const allowedOrigin = "https://ducklingx2.github.io"
 
@@ -106,22 +106,22 @@ func main() {
 	log.Println("Database connection established.")
 
 	// --------------------------------------------------
-	// DATABASE INITIALIZATION
+	// DATABASE SCHEMA
 	// --------------------------------------------------
 
 	_, err = pool.Exec(
 		context.Background(),
-		commentsTableSQL,
+		replySchemaSQL,
 	)
 
 	if err != nil {
 		log.Fatalf(
-			"failed to initialize comments table: %v",
+			"failed to initialize reply schema: %v",
 			err,
 		)
 	}
 
-	log.Println("Comments database initialized.")
+	log.Println("Reply schema initialized successfully.")
 
 	// --------------------------------------------------
 	// HANDLERS

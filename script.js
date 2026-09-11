@@ -1911,39 +1911,41 @@ async function signIn(
 ========================================================= */
 
 async function signOut() {
+    try {
+        const { error } =
+            await supabaseClient.auth.signOut({
+                scope: "local"
+            });
 
-    const {
-        error
-    } =
-        await supabaseClient.auth.signOut();
+        if (error) {
+            throw error;
+        }
 
+        state.user = null;
+        state.session = null;
 
-    if (error) {
+        updateAuthUI();
 
-        throw new Error(
-            error.message
+        closeModal(dom.profileModal);
+
+        showToast(
+            "Signed out successfully.",
+            "✓"
+        );
+
+    } catch (error) {
+        console.error(
+            "Sign out failed:",
+            error
+        );
+
+        showToast(
+            error.message ||
+            "Couldn't sign out.",
+            "!"
         );
     }
-
-
-    state.session = null;
-
-    state.user = null;
-
-
-    updateAuthUI();
-
-    updateProfileUI();
-
-    renderUserTree();
-
-
-    showToast(
-        "Signed out.",
-        "✓"
-    );
 }
-
 
 /* =========================================================
    CURRENT USER

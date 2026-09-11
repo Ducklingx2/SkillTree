@@ -766,7 +766,7 @@ function renderTeacherGrid(posts) {
     posts.forEach(post => {
 
         const identifier =
-            post.userId ||
+            post.authorId ||
             post.authorName;
 
         if (seenUsers.has(identifier)) {
@@ -1250,7 +1250,7 @@ function renderPostGrid(posts) {
         const isOwner =
             state.user &&
             String(state.user.id) ===
-                String(post.userId);
+                String(post.authorId);
 
         if (isOwner) {
 
@@ -2313,7 +2313,7 @@ async function setUserName(name) {
         state.posts.map(post => {
 
             if (
-                post.userId ===
+                post.authorId ===
                 state.user.id
             ) {
 
@@ -2575,9 +2575,9 @@ function normalizePost(post) {
             Supabase user's UUID
         */
 
-        userId:
+        authorId:
             String(
-                post.userId ??
+                post.authorId ??
                 post.user_id ??
                 ""
             ),
@@ -3056,7 +3056,7 @@ async function renderUserTree() {
     const userPosts =
     state.posts.filter(
         post =>
-            String(post.userId) ===
+            String(post.authorId) ===
             String(state.user.id)
     );
 
@@ -3567,7 +3567,7 @@ function updateStats() {
         new Set(
             posts.map(
                 post =>
-                    post.userId
+                    post.authorId
             )
         );
 

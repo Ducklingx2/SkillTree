@@ -140,25 +140,32 @@ func main() {
 	mux.HandleFunc("/", healthHandler)
 
 	// Posts API
-	mux.HandleFunc(
-		"/api/posts",
-		func(w http.ResponseWriter, r *http.Request) {
-			switch r.Method {
-			case http.MethodGet:
-				postHandler.GetPosts(w, r)
+	// Posts API
+mux.HandleFunc(
+    "/api/posts",
+    func(w http.ResponseWriter, r *http.Request) {
+        switch r.Method {
+        case http.MethodGet:
+            postHandler.GetPosts(w, r)
 
-			case http.MethodPost:
-				postHandler.CreatePost(w, r)
+        case http.MethodPost:
+            postHandler.CreatePost(w, r)
 
-			default:
-				http.Error(
-					w,
-					"Method not allowed",
-					http.StatusMethodNotAllowed,
-				)
-			}
-		},
-	)
+        default:
+            http.Error(
+                w,
+                "Method not allowed",
+                http.StatusMethodNotAllowed,
+            )
+        }
+    },
+)
+
+// Delete post
+mux.HandleFunc(
+    "DELETE /api/posts/{postId}",
+    postHandler.DeletePost,
+)
 
 	// Comments API
 	mux.HandleFunc(

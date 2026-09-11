@@ -2795,11 +2795,11 @@ async function renderUserTree() {
 
 
     const userPosts =
-        state.posts.filter(
-            post =>
-                post.userId ===
-                state.user.id
-        );
+    state.posts.filter(
+        post =>
+            String(post.userId) ===
+            String(state.user.id)
+    );
 
 
     nodes.forEach(

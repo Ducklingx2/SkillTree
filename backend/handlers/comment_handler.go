@@ -1,11 +1,13 @@
 package handlers
 
 import (
-	"encoding/json"
-	"net/http"
-	"strconv"
-	"strings"
-	"time"
+    "encoding/json"
+    "fmt"
+    "io"
+    "net/http"
+    "strconv"
+    "strings"
+    "time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -270,6 +272,79 @@ func (h *CommentHandler) CreateComment(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 
 	json.NewEncoder(w).Encode(comment)
+}
+
+func getSupabaseUserID(r *http.Request) (string, error) {
+	authHeader := r.Header.Get("Authorization")
+
+	if authHeader == "" {
+		return "", fmt.Errorf("missing authorization header")
+	}
+
+	parts := strings.SplitN(authHeader, " ", 2)
+
+	if len(parts) != 2 ||
+		!strings.EqualFold(parts[0], "Bearer") ||
+		strings.TrimSpace(parts[1]) == "" {
+		return "", fmt.Errorf("invalid authorization header")
+	}
+
+	token := strings.TrimSpace(parts[1])
+
+	req, err := http.NewRequest(
+		http.MethodGet,
+		"https://bdhthcfovlgpmliohgnt.supabase.co/auth/v1/user",
+		nil,
+	)
+
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Set(
+		"Authorization",
+		"Bearer "+token,
+	)
+
+	req.Header.Set(
+		"apikey",
+		"YOUR_SUPABASE_PUBLISHABLE_KEY",
+	)
+
+	response, err := http.DefaultClient.Do(req)
+
+	if err != nil {
+		return "", err
+	}
+
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return "", fmt.Errorf(
+			"supabase rejected token: %s",
+			response.Status,
+		)
+	}
+
+	body, err := io.ReadAll(response.Body)
+
+	if err != nil {
+		return "", err
+	}
+
+	var user struct {
+		ID string `json:"id"`
+	}
+
+	if err := json.Unmarshal(body, &user); err != nil {
+		return "", err
+	}
+
+	if user.ID == "" {
+		return "", fmt.Errorf("supabase returned no user ID")
+	}
+
+	return user.ID, nil
 }
 
 func (h *CommentHandler) DeleteComment(w http.ResponseWriter, r *http.Request) {

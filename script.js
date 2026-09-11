@@ -878,7 +878,6 @@ function renderPostGrid(posts) {
 
     dom.postGrid.replaceChildren();
 
-
     if (!posts.length) {
 
         dom.postGrid.append(
@@ -895,8 +894,15 @@ function renderPostGrid(posts) {
         return;
     }
 
-
     posts.forEach(post => {
+
+        // Make sure like data always has usable values.
+        post.likeCount =
+            Number(post.likeCount || 0);
+
+        post.likedByMe =
+            Boolean(post.likedByMe);
+
 
         const card =
             document.createElement("article");
@@ -909,42 +915,92 @@ function renderPostGrid(posts) {
            IMAGE
         ================================================= */
 
-       const imageContainer = document.createElement("div");
-imageContainer.className = "post-image";
+        const imageContainer =
+            document.createElement("div");
 
-if (post.imageUrl) {
-    const image = document.createElement("img");
+        imageContainer.className =
+            "post-image";
 
-    image.src = post.imageUrl;
-    image.alt = post.skill || "Skill post";
-    image.loading = "lazy";
+        if (post.imageUrl) {
 
-    image.addEventListener("error", () => {
-        image.remove();
+            const image =
+                document.createElement("img");
 
-        const placeholder = document.createElement("div");
-        placeholder.className = "post-image-placeholder";
+            image.src =
+                post.imageUrl;
 
-        const icon = document.createElement("span");
-        icon.textContent = "✦";
-        icon.setAttribute("aria-hidden", "true");
+            image.alt =
+                post.skill ||
+                "Skill post";
 
-        placeholder.append(icon);
-        imageContainer.append(placeholder);
-    });
+            image.loading =
+                "lazy";
 
-    imageContainer.append(image);
-} else {
-    const placeholder = document.createElement("div");
-    placeholder.className = "post-image-placeholder";
+            image.addEventListener(
+                "error",
+                () => {
 
-    const icon = document.createElement("span");
-    icon.textContent = "✦";
-    icon.setAttribute("aria-hidden", "true");
+                    image.remove();
 
-    placeholder.append(icon);
-    imageContainer.append(placeholder);
-}
+                    const placeholder =
+                        document.createElement("div");
+
+                    placeholder.className =
+                        "post-image-placeholder";
+
+                    const icon =
+                        document.createElement("span");
+
+                    icon.textContent =
+                        "✦";
+
+                    icon.setAttribute(
+                        "aria-hidden",
+                        "true"
+                    );
+
+                    placeholder.append(
+                        icon
+                    );
+
+                    imageContainer.append(
+                        placeholder
+                    );
+                }
+            );
+
+            imageContainer.append(
+                image
+            );
+
+        } else {
+
+            const placeholder =
+                document.createElement("div");
+
+            placeholder.className =
+                "post-image-placeholder";
+
+            const icon =
+                document.createElement("span");
+
+            icon.textContent =
+                "✦";
+
+            icon.setAttribute(
+                "aria-hidden",
+                "true"
+            );
+
+            placeholder.append(
+                icon
+            );
+
+            imageContainer.append(
+                placeholder
+            );
+        }
+
 
         /* =================================================
            BODY
@@ -1054,6 +1110,66 @@ if (post.imageUrl) {
             "post-actions";
 
 
+        /* =================================================
+           LIKE
+        ================================================= */
+
+        const likeButton =
+            document.createElement("button");
+
+        likeButton.type =
+            "button";
+
+        likeButton.className =
+            "post-action post-like-action";
+
+        likeButton.setAttribute(
+            "aria-label",
+            post.likedByMe
+                ? "Unlike this post"
+                : "Like this post"
+        );
+
+        likeButton.setAttribute(
+            "aria-pressed",
+            String(post.likedByMe)
+        );
+
+        likeButton.innerHTML = `
+            <span
+                class="like-icon"
+                aria-hidden="true"
+            >
+                ${post.likedByMe ? "♥" : "♡"}
+            </span>
+
+            <span class="like-count">
+                ${post.likeCount}
+            </span>
+        `;
+
+        likeButton.addEventListener(
+            "click",
+            event => {
+
+                event.stopPropagation();
+
+                toggleLike(
+                    post,
+                    likeButton
+                );
+            }
+        );
+
+        actions.append(
+            likeButton
+        );
+
+
+        /* =================================================
+           VIEW
+        ================================================= */
+
         const viewButton =
             document.createElement("button");
 
@@ -1068,7 +1184,6 @@ if (post.imageUrl) {
             <span>View skill</span>
         `;
 
-
         viewButton.addEventListener(
             "click",
             event => {
@@ -1081,36 +1196,94 @@ if (post.imageUrl) {
             }
         );
 
+        actions.append(
+            viewButton
+        );
+
+
+        /* =================================================
+           REPLY
+        ================================================= */
+
+        const replyButton =
+            document.createElement("button");
+
+        replyButton.type =
+            "button";
+
+        replyButton.className =
+            "post-action";
+
+        replyButton.innerHTML = `
+            <span aria-hidden="true">💬</span>
+            <span>Reply</span>
+        `;
+
+        replyButton.addEventListener(
+            "click",
+            event => {
+
+                event.stopPropagation();
+
+                openPostDetail(
+                    post
+                );
+
+                setTimeout(
+                    () => {
+                        dom.detailCommentInput?.focus();
+                    },
+                    100
+                );
+            }
+        );
 
         actions.append(
-    viewButton
-);
+            replyButton
+        );
 
-const replyButton =
-    document.createElement("button");
 
-replyButton.type = "button";
-replyButton.className = "post-action";
+        /* =================================================
+           DELETE
+        ================================================= */
 
-replyButton.innerHTML = `
-    <span aria-hidden="true">💬</span>
-    <span>Reply</span>
-`;
+        const isOwner =
+            state.user &&
+            String(state.user.id) ===
+                String(post.userId);
 
-replyButton.addEventListener(
-    "click",
-    event => {
-        event.stopPropagation();
+        if (isOwner) {
 
-        openPostDetail(post);
+            const deleteButton =
+                document.createElement("button");
 
-        setTimeout(() => {
-            dom.detailCommentInput?.focus();
-        }, 100);
-    }
-);
+            deleteButton.type =
+                "button";
 
-actions.append(replyButton);
+            deleteButton.className =
+                "post-action post-delete-action";
+
+            deleteButton.innerHTML = `
+                <span aria-hidden="true">⌫</span>
+                <span>Delete</span>
+            `;
+
+            deleteButton.addEventListener(
+                "click",
+                event => {
+
+                    event.stopPropagation();
+
+                    deletePost(
+                        post.id
+                    );
+                }
+            );
+
+            actions.append(
+                deleteButton
+            );
+        }
 
 
         /* =================================================
@@ -1127,7 +1300,6 @@ actions.append(replyButton);
 
             liveBadge.textContent =
                 "Live teaching";
-
 
             actions.append(
                 liveBadge
@@ -1146,12 +1318,10 @@ actions.append(replyButton);
             actions
         );
 
-
         card.append(
             imageContainer,
             body
         );
-
 
         card.addEventListener(
             "click",
@@ -1163,13 +1333,11 @@ actions.append(replyButton);
             }
         );
 
-
         dom.postGrid.append(
             card
         );
     });
 }
-
 
 /* =========================================================
    POST DETAIL

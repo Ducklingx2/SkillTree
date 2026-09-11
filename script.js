@@ -3018,56 +3018,43 @@ function renderInitialTree() {
 }
 
 
-function renderUserTree() {
+async function renderUserTree() {
     const nodes = document.querySelectorAll(".large-node");
 
-    if (!nodes.length) {
-        return;
-    }
-
-    nodes.forEach(node => {
-        node.replaceChildren();
-        node.style.opacity = "0.22";
-        node.title = "Empty skill slot";
-        node.dataset.skill = "";
-    });
+    if (!nodes.length) return;
 
     if (!state.user) {
         nodes.forEach(node => {
+            node.replaceChildren();
+            node.style.opacity = "0.22";
             node.title = "Sign in to see your tree";
         });
-
         return;
     }
 
     const userPosts = state.posts.filter(post => {
         const ownerId =
+            post.uid ??
             post.authorId ??
-            post.userId ??
-            post.uid;
+            post.userId;
 
         return String(ownerId) === String(state.user.id);
     });
 
-    console.log("TREE USER:", state.user.id);
-    console.log("TREE POSTS:", state.posts);
-    console.log("MY TREE POSTS:", userPosts);
-
     nodes.forEach((node, index) => {
         const post = userPosts[index];
 
+        node.replaceChildren();
+
         if (!post) {
+            node.style.opacity = "0.22";
+            node.title = "Empty skill slot";
             return;
         }
 
         node.style.opacity = "1";
         node.title = post.skill;
         node.dataset.skill = post.skill;
-
-        const label = document.createElement("span");
-        label.textContent = post.skill;
-
-        node.append(label);
     });
 }
 

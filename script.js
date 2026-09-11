@@ -1283,6 +1283,36 @@ function openPostDetail(post) {
 
     loadComments(post.id);
 }
+
+/* =========================================================
+   LIKES
+========================================================= */
+
+const likeButton = document.createElement("button");
+
+likeButton.type = "button";
+likeButton.className = "post-action post-like-action";
+
+likeButton.innerHTML = `
+    <span class="like-icon" aria-hidden="true">
+        ${post.likedByMe ? "♥" : "♡"}
+    </span>
+
+    <span class="like-count">
+        ${post.likeCount || 0}
+    </span>
+`;
+
+likeButton.addEventListener(
+    "click",
+    event => {
+        event.stopPropagation();
+        toggleLike(post, likeButton);
+    }
+);
+
+actions.appendChild(likeButton);
+
 /* =========================================================
    COMMENTS / REPLIES
 ========================================================= */
@@ -1855,6 +1885,96 @@ async function signUp(email, password, username) {
     return data;
 }
 
+/* =========================================================
+   LIKES
+========================================================= */
+
+async function toggleLike(post, button) {
+    if (!state.user) {
+        showToast(
+            "Sign in to like posts.",
+            "!"
+        );
+
+        return;
+    }
+
+    if (!post || !post.id) {
+        return;
+    }
+
+    if (button.disabled) {
+        return;
+    }
+
+    button.disabled = true;
+
+    const wasLiked = Boolean(post.likedByMe);
+
+    try {
+        const response =
+            await authenticatedFetch(
+                `${API_URL}/api/posts/${post.id}/like`,
+                {
+                    method:
+                        wasLiked
+                            ? "DELETE"
+                            : "POST"
+                }
+            );
+
+        if (!response.ok) {
+            throw new Error(
+                `Server returned ${response.status}`
+            );
+        }
+
+        post.likedByMe = !wasLiked;
+
+        post.likeCount =
+            Math.max(
+                0,
+                Number(post.likeCount || 0) +
+                    (post.likedByMe ? 1 : -1)
+            );
+
+        const icon =
+            button.querySelector(
+                ".like-icon"
+            );
+
+        const count =
+            button.querySelector(
+                ".like-count"
+            );
+
+        if (icon) {
+            icon.textContent =
+                post.likedByMe
+                    ? "♥"
+                    : "♡";
+        }
+
+        if (count) {
+            count.textContent =
+                post.likeCount;
+        }
+
+    } catch (error) {
+        console.error(
+            "Failed to toggle like:",
+            error
+        );
+
+        showToast(
+            "Couldn't update like.",
+            "!"
+        );
+
+    } finally {
+        button.disabled = false;
+    }
+}
 
 /* =========================================================
    SIGN IN

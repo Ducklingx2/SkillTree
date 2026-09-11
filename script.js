@@ -1366,126 +1366,201 @@ async function loadComments(postId) {
 
 
 function renderComments() {
-
     if (!dom.detailComments) {
         return;
     }
 
-    dom.detailComments.replaceChildren();
+    dom.detailComments.innerHTML = "";
 
-    const comments =
-        state.comments;
+    if (
+        !state.comments ||
+        state.comments.length === 0
+    ) {
+        dom.detailComments.innerHTML = `
+            <div class="comments-empty">
+                No replies yet. Be the first to share your thoughts.
+            </div>
+        `;
 
-    const count =
-        document.getElementById(
-            "detailCommentCount"
-        );
-
-    if (count) {
-        count.textContent =
-            comments.length;
-    }
-
-    if (!comments.length) {
-
-        const empty =
-            document.createElement("p");
-
-        empty.className =
-            "comments-empty";
-
-        empty.textContent =
-            "No replies yet. Start the conversation.";
-
-        dom.detailComments.append(
-            empty
-        );
+        if (dom.detailCommentCount) {
+            dom.detailCommentCount.textContent = "0";
+        }
 
         return;
     }
 
-    comments.forEach(comment => {
+    if (dom.detailCommentCount) {
+        dom.detailCommentCount.textContent =
+            String(state.comments.length);
+    }
 
-        const item =
+    state.comments.forEach(comment => {
+        const commentElement =
             document.createElement("article");
 
-        item.className =
+        commentElement.className =
             "comment";
 
-        if (comment.parentCommentId) {
-            item.classList.add(
-                "comment-reply"
-            );
-        }
+        /*
+         * Check whether this comment belongs
+         * to the currently signed-in user.
+         */
+        const isOwner =
+            state.user &&
+            String(state.user.id) ===
+                String(comment.authorId);
 
+        /*
+         * Comment header
+         */
         const header =
             document.createElement("div");
 
         header.className =
             "comment-header";
 
+        /*
+         * Avatar
+         */
         const avatar =
             document.createElement("div");
 
         avatar.className =
             "comment-avatar";
 
-        avatar.textContent =
-            getInitials(
-                comment.authorName || "User"
-            );
+        const authorName =
+            comment.authorName ||
+            "Anonymous";
 
-        const meta =
+        avatar.textContent =
+            authorName
+                .charAt(0)
+                .toUpperCase();
+
+        /*
+         * Author information
+         */
+        const authorInfo =
             document.createElement("div");
 
-        meta.className =
-            "comment-meta";
+        authorInfo.className =
+            "comment-author-info";
 
         const author =
             document.createElement("strong");
 
+        author.className =
+            "comment-author";
+
         author.textContent =
-            comment.authorName ||
-            "Unknown";
+            authorName;
 
         const date =
             document.createElement("span");
 
-        date.textContent =
-            formatDate(
-                comment.createdAt
-            );
+        date.className =
+            "comment-date";
 
-        meta.append(
-            author,
-            date
-        );
+        if (comment.createdAt) {
+            const createdDate =
+                new Date(comment.createdAt);
 
-        header.append(
-            avatar,
-            meta
-        );
+            if (!Number.isNaN(
+                createdDate.getTime()
+            )) {
+                date.textContent =
+                    createdDate.toLocaleString(
+                        undefined,
+                        {
+                            dateStyle: "medium",
+                            timeStyle: "short"
+                        }
+                    );
+            }
+        }
 
+        authorInfo.appendChild(author);
+
+        if (date.textContent) {
+            authorInfo.appendChild(date);
+        }
+
+        header.appendChild(avatar);
+        header.appendChild(authorInfo);
+
+        /*
+         * Comment content
+         */
         const content =
             document.createElement("p");
 
         content.className =
             "comment-content";
 
+        /*
+         * textContent is intentional.
+         * It prevents comment text from being
+         * interpreted as HTML.
+         */
         content.textContent =
-            comment.content;
+            comment.content || "";
 
-        item.append(
-            header,
-            content
-        );
+        /*
+         * Actions
+         */
+        const actions =
+            document.createElement("div");
 
-        dom.detailComments.append(
-            item
+        actions.className =
+            "comment-actions";
+
+        /*
+         * Only show Delete for the comment owner.
+         */
+        if (isOwner) {
+            const deleteButton =
+                document.createElement("button");
+
+            deleteButton.type =
+                "button";
+
+            deleteButton.className =
+                "comment-delete-button";
+
+            deleteButton.textContent =
+                "Delete";
+
+            deleteButton.addEventListener(
+                "click",
+                event => {
+                    event.stopPropagation();
+
+                    deleteComment(
+                        comment.id
+                    );
+                }
+            );
+
+            actions.appendChild(
+                deleteButton
+            );
+        }
+
+        /*
+         * Build the comment.
+         */
+        commentElement.appendChild(header);
+        commentElement.appendChild(content);
+
+        if (actions.children.length > 0) {
+            commentElement.appendChild(actions);
+        }
+
+        dom.detailComments.appendChild(
+            commentElement
         );
     });
 }
-
 
 async function submitComment() {
     if (

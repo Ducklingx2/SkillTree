@@ -1453,35 +1453,6 @@ function openPostDetail(post) {
 }
 
 /* =========================================================
-   LIKES
-========================================================= */
-
-const likeButton = document.createElement("button");
-
-likeButton.type = "button";
-likeButton.className = "post-action post-like-action";
-
-likeButton.innerHTML = `
-    <span class="like-icon" aria-hidden="true">
-        ${post.likedByMe ? "♥" : "♡"}
-    </span>
-
-    <span class="like-count">
-        ${post.likeCount || 0}
-    </span>
-`;
-
-likeButton.addEventListener(
-    "click",
-    event => {
-        event.stopPropagation();
-        toggleLike(post, likeButton);
-    }
-);
-
-actions.appendChild(likeButton);
-
-/* =========================================================
    COMMENTS / REPLIES
 ========================================================= */
 

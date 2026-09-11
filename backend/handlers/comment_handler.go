@@ -308,7 +308,7 @@ func getSupabaseUserID(r *http.Request) (string, error) {
 
 	req.Header.Set(
 		"apikey",
-		"YOUR_SUPABASE_PUBLISHABLE_KEY",
+		"sb_publishable_TlzA00mjS3PVBIfBnXFpsg_Zq_9QwvX",
 	)
 
 	response, err := http.DefaultClient.Do(req)

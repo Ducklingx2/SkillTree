@@ -347,21 +347,35 @@ func getSupabaseUserID(r *http.Request) (string, error) {
 	return user.ID, nil
 }
 
-func (h *CommentHandler) DeleteComment(w http.ResponseWriter, r *http.Request) {
+func (h *CommentHandler) DeleteComment(
+	w http.ResponseWriter,
+	r *http.Request,
+) {
 	commentIDString := r.PathValue("commentId")
 
-	commentID, err := strconv.ParseInt(commentIDString, 10, 64)
+	commentID, err := strconv.ParseInt(
+		commentIDString,
+		10,
+		64,
+	)
+
 	if err != nil {
-		http.Error(w, "Invalid comment ID", http.StatusBadRequest)
+		http.Error(
+			w,
+			"Invalid comment ID",
+			http.StatusBadRequest,
+		)
 		return
 	}
 
-	// TODO: replace this with your actual authenticated
-	// Supabase user ID once we hook into your auth middleware.
-	userID := r.Header.Get("X-User-ID")
+	userID, err := getSupabaseUserID(r)
 
-	if userID == "" {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+	if err != nil {
+		http.Error(
+			w,
+			"Unauthorized",
+			http.StatusUnauthorized,
+		)
 		return
 	}
 

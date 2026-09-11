@@ -1,4 +1,4 @@
-CREATE TABLE comments (
+CREATE TABLE IF NOT EXISTS comments (
     id BIGSERIAL PRIMARY KEY,
 
     post_id BIGINT NOT NULL
@@ -19,11 +19,14 @@ CREATE TABLE comments (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_comments_post_id
-ON comments(post_id);
+CREATE INDEX IF NOT EXISTS idx_comments_post_id
+    ON comments(post_id);
 
-CREATE INDEX idx_comments_parent_id
-ON comments(parent_comment_id);
+CREATE INDEX IF NOT EXISTS idx_comments_parent_id
+    ON comments(parent_comment_id);
 
-CREATE INDEX idx_comments_created_at
-ON comments(created_at);
+CREATE INDEX IF NOT EXISTS idx_comments_created_at
+    ON comments(created_at);
+
+CREATE INDEX IF NOT EXISTS idx_comments_post_parent
+    ON comments(post_id, parent_comment_id);

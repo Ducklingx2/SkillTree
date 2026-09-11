@@ -2953,6 +2953,201 @@ function setSubmitLoading(
     }
 }
 
+/* =========================================================
+   DELETE POSTS & COMMENTS
+   ========================================================= */
+
+async function deletePost(postId) {
+    if (!state.user) {
+        showToast(
+            "Sign in to delete posts.",
+            "!"
+        );
+        return;
+    }
+
+    if (!postId) {
+        showToast(
+            "Invalid post.",
+            "!"
+        );
+        return;
+    }
+
+    const confirmed = window.confirm(
+        "Delete this post? This cannot be undone."
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    try {
+        const response = await authenticatedFetch(
+            `${API_URL}/api/posts/${postId}`,
+            {
+                method: "DELETE"
+            }
+        );
+
+        if (!response.ok) {
+            let message =
+                `Server returned ${response.status}`;
+
+            try {
+                const errorText =
+                    await response.text();
+
+                if (errorText.trim()) {
+                    message = errorText.trim();
+                }
+            } catch {
+                // Response had no readable body.
+            }
+
+            throw new Error(message);
+        }
+
+        /*
+         * Remove the post from the local frontend state.
+         */
+        state.posts = state.posts.filter(
+            post =>
+                String(post.id) !==
+                String(postId)
+        );
+
+        /*
+         * If the deleted post is currently open
+         * in the detail modal, close it.
+         */
+        if (
+            state.activePost &&
+            String(state.activePost.id) ===
+                String(postId)
+        ) {
+            closeModal(dom.detailModal);
+
+            state.activePost = null;
+            state.comments = [];
+        }
+
+        /*
+         * Re-render the community grid immediately.
+         */
+        renderPostGrid();
+
+        showToast(
+            "Post deleted.",
+            "✓"
+        );
+
+    } catch (error) {
+        console.error(
+            "Failed to delete post:",
+            error
+        );
+
+        showToast(
+            error.message ||
+            "Couldn't delete the post.",
+            "!"
+        );
+    }
+}
+
+
+async function deleteComment(commentId) {
+    if (!state.user) {
+        showToast(
+            "Sign in to delete replies.",
+            "!"
+        );
+        return;
+    }
+
+    if (!state.activePost) {
+        showToast(
+            "No post is currently open.",
+            "!"
+        );
+        return;
+    }
+
+    if (!commentId) {
+        showToast(
+            "Invalid reply.",
+            "!"
+        );
+        return;
+    }
+
+    const confirmed = window.confirm(
+        "Delete this reply? This cannot be undone."
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    try {
+        const response = await authenticatedFetch(
+            `${API_URL}/api/posts/${state.activePost.id}/comments/${commentId}`,
+            {
+                method: "DELETE"
+            }
+        );
+
+        if (!response.ok) {
+            let message =
+                `Server returned ${response.status}`;
+
+            try {
+                const errorText =
+                    await response.text();
+
+                if (errorText.trim()) {
+                    message = errorText.trim();
+                }
+            } catch {
+                // Response had no readable body.
+            }
+
+            throw new Error(message);
+        }
+
+        /*
+         * Remove the deleted reply locally.
+         */
+        state.comments = state.comments.filter(
+            comment =>
+                String(comment.id) !==
+                String(commentId)
+        );
+
+        /*
+         * Re-render the replies immediately.
+         */
+        renderComments();
+
+        showToast(
+            "Reply deleted.",
+            "✓"
+        );
+
+    } catch (error) {
+        console.error(
+            "Failed to delete reply:",
+            error
+        );
+
+        showToast(
+            error.message ||
+            "Couldn't delete the reply.",
+            "!"
+        );
+    }
+}
 
 /* =========================================================
    API ERROR

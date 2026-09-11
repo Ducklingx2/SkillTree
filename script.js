@@ -3018,85 +3018,58 @@ function renderInitialTree() {
 }
 
 
-async function renderUserTree() {
-
-    const nodes =
-        document.querySelectorAll(
-            ".large-node"
-        );
-
+function renderUserTree() {
+    const nodes = document.querySelectorAll(".large-node");
 
     if (!nodes.length) {
-
         return;
     }
 
-
-    /*
-        No logged-in user = empty tree.
-    */
+    nodes.forEach(node => {
+        node.replaceChildren();
+        node.style.opacity = "0.22";
+        node.title = "Empty skill slot";
+        node.dataset.skill = "";
+    });
 
     if (!state.user) {
-
         nodes.forEach(node => {
-
-            node.replaceChildren();
-
-            node.style.opacity =
-                "0.22";
-
-            node.title =
-                "Sign in to see your tree";
+            node.title = "Sign in to see your tree";
         });
 
         return;
     }
 
+    const userPosts = state.posts.filter(post => {
+        const ownerId =
+            post.authorId ??
+            post.userId ??
+            post.uid;
 
-    const userPosts =
-    state.posts.filter(
-        post =>
-            String(post.authorId) ===
-            String(state.user.id)
-    );
+        return String(ownerId) === String(state.user.id);
+    });
 
+    console.log("TREE USER:", state.user.id);
+    console.log("TREE POSTS:", state.posts);
+    console.log("MY TREE POSTS:", userPosts);
 
-    nodes.forEach(
-        (node, index) => {
+    nodes.forEach((node, index) => {
+        const post = userPosts[index];
 
-            const post =
-                userPosts[index];
-
-
-            node.replaceChildren();
-
-
-            if (!post) {
-
-                node.style.opacity =
-                    "0.22";
-
-                node.title =
-                    "Empty skill slot";
-
-                return;
-            }
-
-
-            node.style.opacity =
-                "1";
-
-
-            node.title =
-                post.skill;
-
-
-            node.dataset.skill =
-                post.skill;
+        if (!post) {
+            return;
         }
-    );
-}
 
+        node.style.opacity = "1";
+        node.title = post.skill;
+        node.dataset.skill = post.skill;
+
+        const label = document.createElement("span");
+        label.textContent = post.skill;
+
+        node.append(label);
+    });
+}
 
 /* =========================================================
    BUTTONS
